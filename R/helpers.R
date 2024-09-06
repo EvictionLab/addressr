@@ -1,7 +1,21 @@
+#' Flatten and bound a vector for use in regex
+#'
+#' @param vector A vector or something that can be coerced to one.
+#'
+#' @return A flattened string bound with "\\b(string)\\b)
+#' @export
 str_collapse_bound <- function(vector) {
   str_c("\\b(", str_flatten(vector, collapse = "|"), ")\\b")
 }
 
+#' Replace a string with another string
+#'
+#' @param string A string (or vector, column, etc) to be altered
+#' @param input Pattern to find in the existing string
+#' @param output Replacement for the matched pattern
+#'
+#' @return A modified version of the original string
+#' @export
 str_replace_names <- function(string, input, output) {
   # bound the string to not capture fragments within words
   input <- str_c("\\b", input, "\\b")
@@ -11,6 +25,14 @@ str_replace_names <- function(string, input, output) {
   str_replace_all(string, output)
 }
 
+#' Replace a string using the address_abbreviations table
+#'
+#' @param string A string (or vector, column, etc) to be altered
+#' @param type The category of strings to filter for from `address_abbreviations$type`
+#' @param method `"long-to-short"` (the default) to abbreviate the string, or `"short-to-long"` to un-abbreviate.
+#'
+#' @return A modified version of the original string
+#' @export
 switch_abbreviation <- function(string, type, method = "long-to-short") {
 
   adr_abbr <- addressr::address_abbreviations
