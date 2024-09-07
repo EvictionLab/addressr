@@ -39,6 +39,21 @@ official_endings <- street_endings_raw |>
   filter(short != long) |>
   mutate(type = "official_street_ends")
 
-address_abbreviations <- bind_rows(directions, all_street_endings, official_endings)
+# Ordinal Number Streets
+ordinals <- tribble(
+  ~short, ~long,
+  "1ST", "FIRST",
+  "2ND", "SECOND",
+  "3RD", "THIRD",
+  "4TH", "FOURTH",
+  "5TH", "FIFTH",
+  "6TH", "SIXTH",
+  "7TH", "SEVENTH",
+  "8TH", "EIGHTH",
+  "9TH", "NINTH",
+  "10TH", "TENTH"
+) |> mutate(type = "numbered_street_name")
+
+address_abbreviations <- bind_rows(directions, all_street_endings, official_endings, ordinals)
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)

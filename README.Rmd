@@ -78,14 +78,15 @@ One common issue with address cleaning is abbreviation of directions, street nam
 slice_head(address_abbreviations, n = 3, by = type)
 ```
 
-The table has three columns: `short` contains the abbreviation, `long` contains the full word, and `type` is the category of the word/abbreviation. There are currently three categories:
+The table has three columns: `short` contains the abbreviation, `long` contains the full word, and `type` is the category of the word/abbreviation. There are currently four categories:
 
 - `directions` for N, S, E, W, NE, NW, SE, and SW
+- `numbered_street_name` for ordinal street names like 1st, 2nd, or 3rd St.
 - `all_street_ends` and `official_street_ends` are derived from the [USPS's list of officially accepted street endings](https://pe.usps.com/text/pub28/28apc_002.htm). Both contain the same abbreviated values. For the code behind this chunk, see `data-raw/address_abbreviations.R`.
   - `all_street_ends` contains all accepted spellings of the street ending (one-to-many). Good for catching varied spellings of street endings and reducing them to a common abbreviation.
   - `official_street_ends` contains only the official spellings of the un-abbreviated street ending (one-to-one). Good for expanding abbreviated street endings to a common spelling.
   
-Possible future additions: Commonly abbreviated street names (MLK Jr Blvd) and numeric street names (1st = First, etc).
+Planned future additions: Commonly abbreviated street names (MLK Jr Blvd).
 
 ### `str_collapse_bound()` to create a regex string
 

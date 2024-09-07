@@ -3,7 +3,7 @@
 #' Commonly used abbreviations in addresses.
 #'
 #' @format ## `address_abbreviations`
-#' A data frame with 542 rows and 3 columns:
+#' A data frame with 552 rows and 3 columns:
 #' \describe{
 #'  \item{short}{Abbreviation}
 #'  \item{long}{Full word}

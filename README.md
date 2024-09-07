@@ -84,25 +84,30 @@ assists by providing a resource of common abbreviations.
 
 ``` r
 slice_head(address_abbreviations, n = 3, by = type)
-#> # A tibble: 9 × 3
-#>   short long   type                
-#>   <chr> <chr>  <chr>               
-#> 1 N     NORTH  directions          
-#> 2 S     SOUTH  directions          
-#> 3 E     EAST   directions          
-#> 4 ALY   ALLEY  all_street_ends     
-#> 5 ALY   ALLEE  all_street_ends     
-#> 6 ALY   ALLY   all_street_ends     
-#> 7 ALY   ALLEY  official_street_ends
-#> 8 ANX   ANEX   official_street_ends
-#> 9 ARC   ARCADE official_street_ends
+#> # A tibble: 12 × 3
+#>    short long   type                
+#>    <chr> <chr>  <chr>               
+#>  1 N     NORTH  directions          
+#>  2 S     SOUTH  directions          
+#>  3 E     EAST   directions          
+#>  4 ALY   ALLEY  all_street_ends     
+#>  5 ALY   ALLEE  all_street_ends     
+#>  6 ALY   ALLY   all_street_ends     
+#>  7 ALY   ALLEY  official_street_ends
+#>  8 ANX   ANEX   official_street_ends
+#>  9 ARC   ARCADE official_street_ends
+#> 10 1ST   FIRST  numbered_street_name
+#> 11 2ND   SECOND numbered_street_name
+#> 12 3RD   THIRD  numbered_street_name
 ```
 
 The table has three columns: `short` contains the abbreviation, `long`
 contains the full word, and `type` is the category of the
-word/abbreviation. There are currently three categories:
+word/abbreviation. There are currently four categories:
 
 - `directions` for N, S, E, W, NE, NW, SE, and SW
+- `numbered_street_name` for ordinal street names like 1st, 2nd, or 3rd
+  St.
 - `all_street_ends` and `official_street_ends` are derived from the
   [USPS’s list of officially accepted street
   endings](https://pe.usps.com/text/pub28/28apc_002.htm). Both contain
@@ -115,8 +120,8 @@ word/abbreviation. There are currently three categories:
     un-abbreviated street ending (one-to-one). Good for expanding
     abbreviated street endings to a common spelling.
 
-Possible future additions: Commonly abbreviated street names (MLK Jr
-Blvd) and numeric street names (1st = First, etc).
+Planned future additions: Commonly abbreviated street names (MLK Jr
+Blvd).
 
 ### `str_collapse_bound()` to create a regex string
 
