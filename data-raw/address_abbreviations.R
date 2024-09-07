@@ -14,13 +14,18 @@ directions <- tribble(
 ) |> mutate(type = "directions")
 
 # USPS Street Endings
-
-library(rvest)
+library(readr)
 library(tidyr)
 
-html <- read_html("https://pe.usps.com/text/pub28/28apc_002.htm")
-street_endings_raw <- html |> html_elements(".Basic_no_title") |> html_table(header = TRUE)
-street_endings_raw <- street_endings_raw[[1]] |> janitor::clean_names()
+if (!file.exists("data-raw/usps-street-endings.csv")) {
+  library(rvest)
+  html <- read_html("https://pe.usps.com/text/pub28/28apc_002.htm")
+  street_endings_raw <- html |> html_elements(".Basic_no_title") |> html_table(header = TRUE)
+  street_endings_raw <- street_endings_raw[[1]] |> janitor::clean_names()
+  write_csv(street_endings_raw, "data-raw/usps-street-endings.csv")
+}
+
+street_endings_raw <- read_csv("data-raw/usps-street-endings.csv")
 
 all_street_endings <- street_endings_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
