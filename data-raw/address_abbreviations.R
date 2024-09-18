@@ -13,31 +13,55 @@ directions <- tribble(
   "SW", "SOUTHWEST"
 ) |> mutate(type = "directions")
 
-# USPS Street Endings
+# USPS Street suffix
 library(readr)
 library(tidyr)
 
-if (!file.exists("data-raw/usps-street-endings.csv")) {
+if (!file.exists("data-raw/usps-street-suffix.csv")) {
   library(rvest)
   html <- read_html("https://pe.usps.com/text/pub28/28apc_002.htm")
-  street_endings_raw <- html |> html_elements(".Basic_no_title") |> html_table(header = TRUE)
-  street_endings_raw <- street_endings_raw[[1]] |> janitor::clean_names()
-  write_csv(street_endings_raw, "data-raw/usps-street-endings.csv")
+  street_suffix_raw <- html |> html_elements(".Basic_no_title") |> html_table(header = TRUE)
+  street_suffix_raw <- street_suffix_raw[[1]] |> janitor::clean_names()
+  write_csv(street_suffix_raw, "data-raw/usps-street-suffix.csv")
 }
 
-street_endings_raw <- read_csv("data-raw/usps-street-endings.csv")
+street_suffix_raw <- read_csv("data-raw/usps-street-suffix.csv")
 
-all_street_endings <- street_endings_raw |>
+all_street_suffix <- street_suffix_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
   distinct() |>
   rename(short = 1, long = 2) |>
   filter(short != long) |>
-  mutate(type = "all_street_ends")
+  mutate(type = "all_street_suffix")
 
-official_endings <- street_endings_raw |>
+official_suffix <- street_suffix_raw |>
   select(short = 3, long = 1) |> distinct() |>
   filter(short != long) |>
-  mutate(type = "official_street_ends")
+  mutate(type = "official_street_suffix")
+
+add_suffix <- tribble(
+  ~short, ~long,
+  "BV", "BLVD",
+  "B LVD", "BLVD",
+  "BLV", "BLVD",
+  "BVD", "BLVD",
+  "CI", "CIR",
+  "EX", "EXPRESSWAY",
+  "HY", "HWY",
+  "PY", "PKWY",
+  "TE", "TERRACE",
+  "TR", "TRACE",
+  "MOBILE HOME PARK", "MHP",
+  "MOBILE HOME PK", "MHP",
+  "MOBILE HOME DEV", "MHP",
+  "MOBILE HOME", "MHP",
+  "TRAILER PARK", "MHP",
+  "TRAILER PRK", "MHP",
+  "TRAILER PK", "MHP",
+  "TRL PARK", "MHP",
+  "TRL PK", "MHP"
+) |>
+  mutate(type = "all_street_suffix")
 
 # Ordinal Number Streets
 ordinals <- tribble(
@@ -54,6 +78,6 @@ ordinals <- tribble(
   "10TH", "TENTH"
 ) |> mutate(type = "numbered_street_name")
 
-address_abbreviations <- bind_rows(directions, all_street_endings, official_endings, ordinals)
+address_abbreviations <- bind_rows(directions, all_street_suffix, add_suffix, official_suffix, ordinals)
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)

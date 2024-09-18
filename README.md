@@ -85,19 +85,19 @@ assists by providing a resource of common abbreviations.
 ``` r
 slice_head(address_abbreviations, n = 3, by = type)
 #> # A tibble: 12 × 3
-#>    short long   type                
-#>    <chr> <chr>  <chr>               
-#>  1 N     NORTH  directions          
-#>  2 S     SOUTH  directions          
-#>  3 E     EAST   directions          
-#>  4 ALY   ALLEY  all_street_ends     
-#>  5 ALY   ALLEE  all_street_ends     
-#>  6 ALY   ALLY   all_street_ends     
-#>  7 ALY   ALLEY  official_street_ends
-#>  8 ANX   ANEX   official_street_ends
-#>  9 ARC   ARCADE official_street_ends
-#> 10 1ST   FIRST  numbered_street_name
-#> 11 2ND   SECOND numbered_street_name
+#>    short long   type                  
+#>    <chr> <chr>  <chr>                 
+#>  1 N     NORTH  directions            
+#>  2 S     SOUTH  directions            
+#>  3 E     EAST   directions            
+#>  4 ALY   ALLEY  all_street_suffix     
+#>  5 ALY   ALLEE  all_street_suffix     
+#>  6 ALY   ALLY   all_street_suffix     
+#>  7 ALY   ALLEY  official_street_suffix
+#>  8 ANX   ANEX   official_street_suffix
+#>  9 ARC   ARCADE official_street_suffix
+#> 10 1ST   FIRST  numbered_street_name  
+#> 11 2ND   SECOND numbered_street_name  
 #> 12 3RD   THIRD  numbered_street_name
 ```
 
@@ -108,16 +108,16 @@ word/abbreviation. There are currently four categories:
 - `directions` for N, S, E, W, NE, NW, SE, and SW
 - `numbered_street_name` for ordinal street names like 1st, 2nd, or 3rd
   St.
-- `all_street_ends` and `official_street_ends` are derived from the
-  [USPS’s list of officially accepted street
+- `all_street_suffix` and `official_street_suffix` are derived primarily
+  from the [USPS’s list of officially accepted street
   endings](https://pe.usps.com/text/pub28/28apc_002.htm). Both contain
   the same abbreviated values. For the code behind this chunk, see
   `data-raw/address_abbreviations.R`.
-  - `all_street_ends` contains all accepted spellings of the street
-    ending (one-to-many). Good for catching varied spellings of street
+  - `all_street_suffix` contains all accepted spellings of the street
+    suffix (one-to-many). Good for catching varied spellings of street
     endings and reducing them to a common abbreviation.
-  - `official_street_ends` contains only the official spellings of the
-    un-abbreviated street ending (one-to-one). Good for expanding
+  - `official_street_suffix` contains only the official spellings of the
+    un-abbreviated street suffix (one-to-one). Good for expanding
     abbreviated street endings to a common spelling.
 
 Planned future additions: Commonly abbreviated street names (MLK Jr
@@ -202,16 +202,16 @@ Street endings can also be extracted using the `address_abbreviations`
 dataset. To expand abbreviations, change `method = "short-to-long"`.
 
 ``` r
-street_endings <- address_abbreviations |> filter(type == "all_street_ends")
-street_endings <- paste0("(?<!^)", str_collapse_bound(unique(c(street_endings$short, street_endings$long))), "$")
+street_suffixes <- address_abbreviations |> filter(type == "all_street_suffix")
+street_suffixes <- paste0("(?<!^)", str_collapse_bound(unique(c(street_suffixes$short, street_suffixes$long))), "$")
 
 address_table <- address_table |> 
-  extract_remove_squish(street_name, street_ending, street_endings) |> 
-  mutate(street_ending = switch_abbreviation(street_ending, "all_street_ends", "short-to-long"))
+  extract_remove_squish(street_name, street_suffix, street_suffixes) |> 
+  mutate(street_suffix = switch_abbreviation(street_suffix, "all_street_suffix", "short-to-long"))
 
-address_table |> select(street_name, street_ending)
+address_table |> select(street_name, street_suffix)
 #> # A tibble: 3 × 2
-#>   street_name street_ending
+#>   street_name street_suffix
 #>   <chr>       <chr>        
 #> 1 JERSEY      AVENUE       
 #> 2 STREET      ROAD         
