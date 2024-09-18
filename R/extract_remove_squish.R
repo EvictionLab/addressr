@@ -20,3 +20,22 @@ extract_remove_squish <- function(.data, original_column, new_column, pattern) {
       {{ original_column }} := str_remove({{ original_column }}, pattern) |> str_squish()
     )
 }
+
+#' Extract, remove, and squish a string in a dataframe
+#'
+#' @inheritParams extract_remove_squish
+#'
+#' @return An object of the same type as .data, with the following properties:
+#'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
+#'    * A new column containing the extracted string.
+#' @export
+extract_remove_squish_db <- function(.data, original_column, new_column, pattern) {
+  extract_sql <- paste0("regexp_extract(", original_column, ", '", pattern, "')")
+  remove_squish_sql <- paste0("trim(regexp_replace(", original_column, ", '", pattern, "', ''))")
+
+  .data |>
+    mutate(
+      {{ new_column }} := sql(extract_sql),
+      {{ original_column }} := sql(remove_squish_sql)
+    )
+}
