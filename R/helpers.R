@@ -76,7 +76,7 @@ check_pattern <- function(pattern) {
 
   if (str_detect(pattern, "direction")) {
 
-    abbr_tbl <- abbr_tbl[abbr_tbl$type == "directions"]
+    abbr_tbl <- abbr_tbl[abbr_tbl$type == "directions", ]
     pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
 
     if (pattern == "pre_direction") {
@@ -87,7 +87,7 @@ check_pattern <- function(pattern) {
 
   if (pattern %in% abbr_types) {
 
-    abbr_tbl <- abbr_tbl[abbr_tbl$type == pattern]
+    abbr_tbl <- abbr_tbl[abbr_tbl$type == pattern, ]
     pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
 
   }
@@ -98,7 +98,7 @@ check_pattern <- function(pattern) {
 
   if (pattern %in% regex_types) {
 
-    abbr_tbl <- regex_tbl[regex_tbl$address_part == pattern]
+    abbr_tbl <- regex_tbl[regex_tbl$address_part == pattern, ]
     pat <- abbr_tbl$regex
 
   }
