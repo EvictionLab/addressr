@@ -59,3 +59,50 @@ switch_abbreviation <- function(string, type, method = "long-to-short") {
   }
 
 }
+
+#' Check the address pattern
+#'
+#' @param pattern The string to be extracted and removed.
+#'
+#' @return A string to use in pattern matching.
+check_pattern <- function(pattern) {
+
+  pat <- pattern
+
+  abbr_tbl <- addressr::address_abbreviations
+  abbr_types <- unique(abbr_tbl$type)
+  regex_tbl <- address_regex
+  regex_types <- unique(regex_tbl$address_part)
+
+  if (str_detect(pattern, "direction")) {
+
+    abbr_tbl <- abbr_tbl[abbr_tbl$type == "directions"]
+    pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
+
+    if (pattern == "pre_direction") {
+      pat <- paste0("^", pat)
+    }
+
+  }
+
+  if (pattern %in% abbr_types) {
+
+    abbr_tbl <- abbr_tbl[abbr_tbl$type == pattern]
+    pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
+
+  }
+
+  if (pattern %in% c("post_direction", "all_street_suffix")) {
+    pat <- paste0(pat, "$")
+  }
+
+  if (pattern %in% regex_types) {
+
+    abbr_tbl <- regex_tbl[regex_tbl$address_part == pattern]
+    pat <- abbr_tbl$regex
+
+  }
+
+  pat
+
+}

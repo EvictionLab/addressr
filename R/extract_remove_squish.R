@@ -14,6 +14,9 @@
 #' df <- dplyr::tibble(row_id = 1, address = "123 Main St")
 #' df |> extract_remove_squish(address, street_number, "^\\d+")
 extract_remove_squish <- function(.data, original_column, new_column, pattern) {
+
+  pattern <- check_pattern(pattern)
+
   .data |>
     mutate(
       {{ new_column }} := str_extract({{ original_column }}, pattern),
@@ -30,6 +33,9 @@ extract_remove_squish <- function(.data, original_column, new_column, pattern) {
 #'    * A new column containing the extracted string.
 #' @export
 extract_remove_squish_db <- function(.data, original_column, new_column, pattern) {
+
+  pattern <- check_pattern(pattern)
+
   extract_sql <- paste0("regexp_extract(", original_column, ", '", pattern, "')")
   remove_squish_sql <- paste0("trim(regexp_replace(", original_column, ", '", pattern, "', ''))")
 
