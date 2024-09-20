@@ -18,8 +18,8 @@ clean_address <- function(.data, dataset, input_column) {
       extract_remove_squish({{ input_column }}, "lexis_street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "lexis_unit", "unit") |>
       extract_remove_squish({{ input_column }}, "lexis_pre_direction", "pre_direction") |>
-      extract_remove_squish({{ input_column }}, "lexis_pre_direction", "post_direction") |>
-      extract_remove_squish({{ input_column }}, "lexis_pre_direction", "all_street_suffix")
+      extract_remove_squish({{ input_column }}, "lexis_post_direction", "post_direction") |>
+      extract_remove_squish({{ input_column }}, "lexis_all_street_suffix", "all_street_suffix")
 
   } else if (dataset == "lexis_db") {
 
@@ -29,8 +29,8 @@ clean_address <- function(.data, dataset, input_column) {
       extract_remove_squish_db({{ input_column }}, "lexis_street_number", "street_number") |>
       extract_remove_squish_db({{ input_column }}, "lexis_unit", "unit") |>
       extract_remove_squish_db({{ input_column }}, "lexis_pre_direction", "pre_direction") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_pre_direction", "post_direction") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_pre_direction", "all_street_suffix")
+      extract_remove_squish_db({{ input_column }}, "lexis_post_direction", "post_direction") |>
+      extract_remove_squish_db({{ input_column }}, "lexis_all_street_suffix", "all_street_suffix")
 
   }
 
