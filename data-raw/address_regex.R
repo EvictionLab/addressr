@@ -7,7 +7,7 @@ address_regex <- tribble(
   "street_number_fraction", "\\d/\\d\\b",
   "po_box", "(P( )?O )?BOX \\w+",
   "unit", "#.*$|\\bLOT( )?\\w+\\b",
-  "building", "^\\d+[:alpha:]\\b|^[:alpha:]\\d\\b",
+  "building", "^\\d+[A-Z]\\b|^[A-Z]\\d\\b",
   "mlk", "(DR )?M(ARTIN)?( )?L(UTHER)?( )?K(ING)?( JR)?"
 )
 
