@@ -6,9 +6,8 @@ address_regex <- tribble(
   "street_number_range", "^\\d+-\\d+\\b",
   "street_number_fraction", "\\d/\\d\\b",
   "po_box", "(P( )?O )?BOX \\w+",
-  "unit", "#.*$|\\bLOT( )?\\w+\\b",
-  "building", "^\\d+[A-Z]\\b|^[A-Z]\\d\\b",
-  "mlk", "(DR )?M(ARTIN)?( )?L(UTHER)?( )?K(ING)?( JR)?"
+  "unit", "(#|UNIT|APT\\b).*$|\\bLOT( )?\\w+\\b",
+  "building", "^\\d+[A-Z]\\b|^[A-Z]\\d\\b"
 )
 
 usethis::use_data(address_regex, overwrite = TRUE, internal = TRUE)
