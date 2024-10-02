@@ -4,14 +4,14 @@
 \alias{clean_address}
 \title{Clean Addresses}
 \usage{
-clean_address(.data, dataset, input_column)
+clean_address(.data, input_column, dataset = "default")
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).}
 
-\item{dataset}{The dataset to clean. Currently "lexis" is only available.}
-
 \item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
+
+\item{dataset}{The dataset to clean. Currently "lexis" is only available.}
 }
 \value{
 An object of the same type as .data, with the following properties:
