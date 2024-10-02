@@ -69,16 +69,19 @@ check_pattern <- function(pattern) {
 
   pat <- pattern
 
+  # reference table: address_abbreviations
   abbr_tbl <- addressr::address_abbreviations
   abbr_types <- unique(abbr_tbl$type)
+  # reference table: address_regex
   regex_tbl <- address_regex
   regex_types <- unique(regex_tbl$address_part)
 
+  # both pre and post-directions use the "directions" table
   if (str_detect(pattern, "direction")) {
-
     abbr_tbl <- abbr_tbl[abbr_tbl$type == "directions", ]
     pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
 
+    # pre-directions must be at the string start
     if (pattern == "pre_direction") {
       pat <- paste0("^", pat)
     }
@@ -87,17 +90,24 @@ check_pattern <- function(pattern) {
 
   if (pattern %in% abbr_types) {
 
+    # filter for address pattern type, get unique from each column
     abbr_tbl <- abbr_tbl[abbr_tbl$type == pattern, ]
     pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
 
   }
 
-  if (pattern %in% c("post_direction", "all_street_suffix")) {
+  # address parts that appear at the end
+  if (pattern %in% c("post_direction", "all_street_suffix", "special_units")) {
     pat <- paste0(pat, "$")
   }
 
-  if (pattern %in% regex_types) {
+  # capture items following the unit
+  if (pattern %in% c("unit")) {
+    pat <- paste0(pat, "(.*)?$|#.*|\\d+$")
+  }
 
+  # if it's in the regex table, it's already ready to go
+  if (pattern %in% regex_types) {
     abbr_tbl <- regex_tbl[regex_tbl$address_part == pattern, ]
     pat <- abbr_tbl$regex
 

@@ -78,6 +78,36 @@ ordinals <- tribble(
   "10TH", "TENTH"
 ) |> mutate(type = "numbered_street_name")
 
-address_abbreviations <- bind_rows(directions, all_street_suffix, add_suffix, official_suffix, ordinals)
+# Unit Types
+unit_types <- tribble(
+  ~short, ~long,
+  "APT", "APARTMENT",
+  "UNIT", "UNIT",
+  "STE", "SUITE",
+  "FL", "FLOOR",
+  "BLDG", "BUILDING",
+  "RM", "ROOM",
+  "PH", "PENTHOUSE",
+  "DEPT", "DEPARTMENT",
+  "LOT", "LOT",
+  "OFFICE", "OFFICE",
+  "#", "#",
+) |> mutate(type = "unit")
+
+# Special Units
+special_units <- tribble(
+  ~short, ~long,
+  "UPPER FRONT", "UPPER FRONT",
+  "UPPER REAR", "UPPER REAR",
+  "LOWER FRONT", "LOWER FRONT",
+  "REAR ATTIC", "REAR ATTIC",
+  "UPPR", "UPPER",
+  "LWR", "LOWER",
+  "FRONT", "FRONT",
+  "REAR", "REAR",
+  "ATTIC", "ATTIC",
+) |> mutate(type = "special_units")
+
+address_abbreviations <- bind_rows(directions, all_street_suffix, add_suffix, official_suffix, ordinals, unit_types, special_units)
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)

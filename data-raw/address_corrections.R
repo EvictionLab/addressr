@@ -17,8 +17,7 @@ address_corrections <- tribble(
   "([A-D] )?RIVERWALK", "5327 RIVERWALK DR", "COLLEGE PARK", "GA",
   "BOLTON", "2108 BOLTON RD NW", "ATLANTA", "GA",
   "SUMMERGLEN", "6425 OAKLEY RD", "UNION CITY", "GA",
-  "CONT COLONY", "CONTINENTAL COLONY", "ATLANTA", "GA",
-  "CONTL CLNY", "CONTINENTAL COLONY", "ATLANTA", "GA",
+  "CONT(L)? C[OL]+NY", "CONTINENTAL COLONY", "ATLANTA", "GA",
 )
 
 usethis::use_data(address_corrections, overwrite = TRUE)
