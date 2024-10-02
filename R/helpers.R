@@ -60,6 +60,59 @@ switch_abbreviation <- function(string, type, method = "long-to-short") {
 
 }
 
+#' Replace a string in a dataframe using the address_abbreviations table
+#'
+#' @param .data the dataframe
+#' @param column The column to be altered
+#' @param type The category of strings to filter for from `address_abbreviations$type`
+#' @param method `"long-to-short"` (the default) to abbreviate the string, or `"short-to-long"` to un-abbreviate.
+#'
+#' @return A modified version of the original string
+#' @export
+switch_abbreviation_db <- function(.data, column, type, method = "long-to-short") {
+  adr_abbr <- addressr::address_abbreviations
+  abbr_types <- unique(adr_abbr$type)
+
+  # catch errors
+  if (!type %in% abbr_types) {
+    type_message <- paste0("type must be one of the following:", str_flatten_comma(abbr_types, last = ", or "))
+    stop(type_message)
+  }
+  if (!method %in% c("short-to-long", "long-to-short")) {
+    stop("method must be 'short-to-long' or 'long-to-short'")
+  }
+
+  # filter abbreviations to the selected type
+  lookup <- adr_abbr[adr_abbr$type == type, ]
+
+  # switch abbreviations based on method
+  if (method == "short-to-long") {
+
+    for (i in 1:nrow(lookup)) {
+      pattern <- lookup$short[i]
+      replacement <- lookup$long[i]
+      replace_regex <- paste0("regex_replace(", column, ", '", pattern, "', '", replacement, "')")
+
+      df <- .data |>
+        mutate({{ column }} := sql(replace_regex))
+    }
+
+  } else {
+
+    for (i in 1:nrow(lookup)) {
+      pattern <- lookup$long[i]
+      replacement <- lookup$short[i]
+      replace_regex <- paste0("regex_replace(", column, ", '", pattern, "', '", replacement, "')")
+
+      df <- .data |>
+        mutate({{ column }} := sql(replace_regex))
+    }
+
+  }
+
+  return(df)
+}
+
 #' Check the address pattern
 #'
 #' @param pattern The string to be extracted and removed.
