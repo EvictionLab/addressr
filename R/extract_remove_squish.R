@@ -38,7 +38,7 @@ extract_remove_squish_db <- function(.data, original_column, new_column, pattern
 
   extract_sql <- paste0("regexp_extract(", original_column, ", '", pattern, "')")
   remove_squish_sql <- paste0("trim(regexp_replace(", original_column, ", '", pattern, "', ''))")
-  remove_messy_sql <- paste0("regexp_replace(", original_column, ", '(^\\W+|\\W+$)', '', 'g'")
+  remove_messy_sql <- paste0("regexp_replace(", original_column, ", '(^\\W+|\\W+$)', '', 'g')")
 
   .data |>
     mutate(

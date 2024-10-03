@@ -100,6 +100,7 @@ special_units <- tribble(
   "UPPER FRONT", "UPPER FRONT",
   "UPPER REAR", "UPPER REAR",
   "LOWER FRONT", "LOWER FRONT",
+  "LOWER REAR", "LOWER REAR",
   "REAR ATTIC", "REAR ATTIC",
   "UPPR", "UPPER",
   "LWR", "LOWER",
