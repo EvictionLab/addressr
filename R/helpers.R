@@ -88,29 +88,21 @@ switch_abbreviation_db <- function(.data, column, type, method = "long-to-short"
   # switch abbreviations based on method
   if (method == "short-to-long") {
 
-    for (i in 1:nrow(lookup)) {
-      pattern <- lookup$short[i]
-      replacement <- lookup$long[i]
-      replace_regex <- paste0("regex_replace(", column, ", '", pattern, "', '", replacement, "')")
-
-      df <- .data |>
-        mutate({{ column }} := sql(replace_regex))
-    }
+      pattern <- lookup$short
+      replacement <- lookup$long
 
   } else {
 
-    for (i in 1:nrow(lookup)) {
-      pattern <- lookup$long[i]
-      replacement <- lookup$short[i]
-      replace_regex <- paste0("regex_replace(", column, ", '", pattern, "', '", replacement, "')")
-
-      df <- .data |>
-        mutate({{ column }} := sql(replace_regex))
-    }
+      pattern <- lookup$long
+      replacement <- lookup$short
 
   }
 
-  return(df)
+  replace_statements <- map2(pattern, replacement, ~ glue::glue("regexp_replace( '\\b{.x}\\b', '{.y}', 'g')"))
+  replace_regex <- paste0(column, ".", paste0(replace_statements, collapse = "."))
+
+  .data |>
+    mutate({{ column }} := sql(replace_regex))
 }
 
 #' Check the address pattern
