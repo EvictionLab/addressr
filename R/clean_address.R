@@ -10,32 +10,7 @@
 #' @export
 clean_address <- function(.data, input_column, dataset = "default") {
 
-  if (dataset == "lexis") {
-
-    .data |>
-      extract_remove_squish({{ input_column }}, "lexis_street_number_fraction", "street_number_fraction") |>
-      extract_remove_squish({{ input_column }}, "lexis_street_number_range", "street_number_range") |>
-      extract_remove_squish({{ input_column }}, "lexis_street_number", "street_number") |>
-      extract_remove_squish({{ input_column }}, "lexis_unit", "unit") |>
-      extract_remove_squish({{ input_column }}, "lexis_building", "building") |>
-      extract_remove_squish({{ input_column }}, "lexis_pre_direction", "pre_direction") |>
-      extract_remove_squish({{ input_column }}, "lexis_post_direction", "post_direction") |>
-      extract_remove_squish({{ input_column }}, "lexis_all_street_suffix", "all_street_suffix") |>
-      mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "numbered_street_name", "short-to-long"))
-
-  } else if (dataset == "lexis_db") {
-
-    .data |>
-      extract_remove_squish_db({{ input_column }}, "lexis_street_number_fraction", "street_number_fraction") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_street_number_range", "street_number_range") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_street_number", "street_number") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_unit", "unit") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_building", "building") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_pre_direction", "pre_direction") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_post_direction", "post_direction") |>
-      extract_remove_squish_db({{ input_column }}, "lexis_all_street_suffix", "all_street_suffix")
-
-  } else if (dataset == "default") {
+  if (dataset == "default") {
 
     .data |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
