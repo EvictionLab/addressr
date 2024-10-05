@@ -43,12 +43,12 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
-      extract_remove_squish({{ input_column }}, "special_unit", "special_units") |>
+      extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
-      mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "numbered_street_name", "short-to-long"))
+      mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long"))
 
   } else if (dataset == "default_db") {
 
@@ -57,7 +57,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish_db({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish_db({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish_db({{ input_column }}, "unit", "unit") |>
-      extract_remove_squish_db({{ input_column }}, "special_unit", "special_units") |>
+      extract_remove_squish_db({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish_db({{ input_column }}, "building", "building") |>
       extract_remove_squish_db({{ input_column }}, "pre_direction", "pre_direction") |>
       extract_remove_squish_db({{ input_column }}, "post_direction", "post_direction") |>
@@ -65,7 +65,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       compute()
 
     df <- df |>
-      switch_abbreviation_db({{ input_column }}, "numbered_street_name", "short-to-long")
+      switch_abbreviation_db({{ input_column }}, "ordinal", "short-to-long")
 
   }
 
