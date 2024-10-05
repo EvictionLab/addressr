@@ -41,10 +41,10 @@ official_suffix <- street_suffix_raw |>
 
 add_suffix <- tribble(
   ~short, ~long,
-  "BV", "BLVD",
   "B LVD", "BLVD",
-  "BLV", "BLVD",
   "BVD", "BLVD",
+  "BV", "BLVD",
+  "BLV", "BLVD",
   "CI", "CIR",
   "EX", "EXPRESSWAY",
   "HY", "HWY",
