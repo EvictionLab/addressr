@@ -48,6 +48,7 @@ add_suffix <- tribble(
   "CI", "CIR",
   "EX", "EXPRESSWAY",
   "HY", "HWY",
+  "LA", "LANE",
   "PY", "PKWY",
   "TE", "TERRACE",
   "TR", "TRACE",
