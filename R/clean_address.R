@@ -12,7 +12,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
   if (dataset == "default") {
 
-    .data |>
+    df <- .data |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
@@ -24,6 +24,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long"))
+
+    df <- df |> check_street_range("street_number_range", "street_number")
 
   } else if (dataset == "default_db") {
 

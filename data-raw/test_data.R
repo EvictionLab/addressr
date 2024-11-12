@@ -10,9 +10,11 @@ test_data <- tribble(
   "123 N Main St DEPT 2",
   "123 N Main St FLOOD",
   "123 N Main St - DEPT 2",
-  "123 1st st apt 7B"
+  "123 1st st apt 7B",
+  "123-123 N Main St Apt 32",
+  "123-125 N Main St Apt 32"
 ) |>
-  clean_address(input_column = address) |>
+  clean_address(address) |>
   janitor::remove_empty("cols")
 
 # usethis::use_data(test_data, overwrite = TRUE)

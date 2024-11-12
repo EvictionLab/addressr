@@ -161,3 +161,35 @@ check_pattern <- function(pattern) {
   pat
 
 }
+
+# If a street number range contains the same number twice, change it to a singular street number
+check_street_range <- function(.data, street_number_range, street_number) {
+
+  df <- .data |> mutate(row_id = row_number())
+
+  df_ranges <- df |> filter(!is.na({{ street_number_range }}))
+
+  df <- df |> anti_join(df_ranges, by = "row_id")
+
+  if (nrow(df_ranges) != 0) {
+
+    range_name_1 <- sym(paste0(street_number_range, "_1"))
+    range_name_2 <- sym(paste0(street_number_range, "_2"))
+
+    df_ranges <- df_ranges |>
+      separate_wider_delim({{ street_number_range }}, delim = "-", names = c("1", "2"), names_sep = "_") |>
+      mutate(
+        # some street number ranges are the same number twice (105-105). only keep unique ranges
+        {{ street_number_range }} := if_else({{ range_name_1 }} != {{ range_name_2 }}, paste0({{ range_name_1 }}, "-", {{ range_name_2 }}), NA_character_),
+        # for the ranges with duplicate numbers, save the number in the street_number col
+        {{ street_number }} := if_else(!is.na({{ range_name_1 }}) & {{ range_name_1 }} == {{ range_name_2 }}, {{ range_name_1 }}, street_number)
+      ) |>
+      select(-c(range_name_1, range_name_2))
+
+    df <- bind_rows(df, df_ranges)
+
+  }
+
+  df <- df |> select(-row_id)
+
+}
