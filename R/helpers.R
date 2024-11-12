@@ -165,6 +165,7 @@ check_pattern <- function(pattern) {
 # If a street number range contains the same number twice, change it to a singular street number
 check_street_range <- function(.data, street_number_range, street_number) {
 
+  row_id <- sym("row_id")
   df <- .data |> mutate(row_id = row_number())
 
   df_ranges <- df |> filter(!is.na({{ street_number_range }}))
