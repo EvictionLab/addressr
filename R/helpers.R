@@ -202,6 +202,7 @@ check_street_range <- function(.data, street_number_range, street_number) {
 
 check_unit <- function(.data, unit, street_number, all_street_suffix) {
 
+  row_id <- sym("row_id")
   df <- .data |> mutate(row_id = row_number())
 
   df_unit <- df |> filter(!is.na({{ unit }}))
@@ -210,7 +211,8 @@ check_unit <- function(.data, unit, street_number, all_street_suffix) {
 
   if (nrow(df_unit) != 0) {
 
-    street_suffix <- address_abbreviations |> filter(type == "all_street_suffix")
+    addr_abbr <- addressr::address_abbreviations
+    street_suffix <- addr_abbr[addr_abbr$type == "all_street_suffix", ]
     street_suffix <- unique(c(street_suffix$short, street_suffix$long))
 
     df_unit <- df_unit |>
