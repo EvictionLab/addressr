@@ -13,6 +13,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
   if (dataset == "default") {
     raw_address <- sym("raw_address")
     unit <- sym("unit")
+    street_number <- sym("street_number")
+    all_street_suffix <- sym("all_street_suffix")
 
     df <- .data |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
@@ -30,6 +32,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long"))
 
     df <- df |> check_street_range("street_number_range", "street_number")
+    df <- df |> check_unit(unit, street_number, all_street_suffix)
 
   } else if (dataset == "default_db") {
 

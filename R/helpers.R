@@ -199,3 +199,33 @@ check_street_range <- function(.data, street_number_range, street_number) {
   df <- df |> select(-row_id)
 
 }
+
+check_unit <- function(.data, unit, street_number, all_street_suffix) {
+
+  df <- .data |> mutate(row_id = row_number())
+
+  df_unit <- df |> filter(!is.na({{ unit }}))
+
+  df <- df |> anti_join(df_unit, by = "row_id")
+
+  if (nrow(df_unit) != 0) {
+
+    street_suffix <- address_abbreviations |> filter(type == "all_street_suffix")
+    street_suffix <- unique(c(street_suffix$short, street_suffix$long))
+
+    df_unit <- df_unit |>
+      mutate(
+        # remove all non-word characters
+        {{ unit }} := str_remove_all(unit, "\\W"),
+        # check unit for street suffix
+        {{ all_street_suffix }} := if_else(is.na({{ all_street_suffix }}) & ({{ unit }} %in% street_suffix), {{ unit }}, {{ all_street_suffix }}),
+        # check if unit duplicates street number
+        {{ unit }} := if_else({{ unit }} == {{ street_number }} | {{ unit }} == {{ all_street_suffix }}, NA_character_, {{ unit }})
+      )
+
+    df <- bind_rows(df, df_unit) |> arrange(row_id)
+
+  }
+
+  df <- df |> select(-row_id)
+}
