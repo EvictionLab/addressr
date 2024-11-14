@@ -12,6 +12,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
   if (dataset == "default") {
     raw_address <- sym("raw_address")
+    unit <- sym("unit")
 
     df <- .data |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
@@ -20,6 +21,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
+      extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
       extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>

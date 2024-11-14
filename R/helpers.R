@@ -147,8 +147,13 @@ check_pattern <- function(pattern) {
   }
 
   # capture items following the unit
-  if (pattern %in% c("unit")) {
+  if (pattern == "unit") {
     pat <- paste0(pat, "(.*)?$|#.*|\\d+$")
+  }
+
+  if (pattern == "unit_type") {
+    abbr_tbl <- abbr_tbl[abbr_tbl$type == "unit", ]
+    pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
   }
 
   # if it's in the regex table, it's already ready to go
