@@ -11,9 +11,11 @@
 clean_address <- function(.data, input_column, dataset = "default") {
 
   if (dataset == "default") {
+    raw_address <- sym("raw_address")
 
     df <- .data |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
+      mutate({{ raw_address }} := {{ input_column }}, .before = {{ input_column }}) |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
