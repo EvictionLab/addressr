@@ -10,7 +10,7 @@ str_collapse_bound(vector)
 \item{vector}{A vector or something that can be coerced to one.}
 }
 \value{
-A flattened string bound with "\\b(string)\\b)
+A flat bound string: \verb{\\\\b(str1|str2)\\\\b}
 }
 \description{
 Flatten and bound a vector for use in regex

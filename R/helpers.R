@@ -2,7 +2,7 @@
 #'
 #' @param vector A vector or something that can be coerced to one.
 #'
-#' @return A flattened string bound with "\\b(string)\\b)
+#' @return A flat bound string: `\\b(str1|str2)\\b`
 #' @export
 str_collapse_bound <- function(vector) {
   str_c("\\b(", str_flatten(vector, collapse = "|"), ")\\b")
@@ -170,12 +170,12 @@ check_pattern <- function(pattern) {
 # If a street number range contains the same number twice, change it to a singular street number
 check_street_range <- function(.data, street_number_range, street_number) {
 
-  row_id <- sym("row_id")
-  df <- .data |> mutate(row_id = row_number())
+  addressr_id <- sym("addressr_id")
+  df <- .data |> mutate(addressr_id = row_number())
 
   df_ranges <- df |> filter(!is.na({{ street_number_range }}))
 
-  df <- df |> anti_join(df_ranges, by = "row_id")
+  df <- df |> anti_join(df_ranges, by = "addressr_id")
 
   if (nrow(df_ranges) != 0) {
 
@@ -196,18 +196,18 @@ check_street_range <- function(.data, street_number_range, street_number) {
 
   }
 
-  df <- df |> select(-row_id)
+  df <- df |> select(-addressr_id)
 
 }
 
 check_unit <- function(.data, unit, street_number, all_street_suffix) {
 
-  row_id <- sym("row_id")
-  df <- .data |> mutate(row_id = row_number())
+  addressr_id <- sym("addressr_id")
+  df <- .data |> mutate(addressr_id = row_number())
 
   df_unit <- df |> filter(!is.na({{ unit }}))
 
-  df <- df |> anti_join(df_unit, by = "row_id")
+  df <- df |> anti_join(df_unit, by = "addressr_id")
 
   if (nrow(df_unit) != 0) {
 
@@ -225,9 +225,9 @@ check_unit <- function(.data, unit, street_number, all_street_suffix) {
         {{ unit }} := if_else({{ unit }} == {{ street_number }} | {{ unit }} == {{ all_street_suffix }}, NA_character_, {{ unit }})
       )
 
-    df <- bind_rows(df, df_unit) |> arrange(row_id)
+    df <- bind_rows(df, df_unit) |> arrange(addressr_id)
 
   }
 
-  df <- df |> select(-row_id)
+  df <- df |> select(-addressr_id)
 }
