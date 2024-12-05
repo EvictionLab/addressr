@@ -11,14 +11,18 @@
 clean_address <- function(.data, input_column, dataset = "default") {
 
   if (dataset == "default") {
+    # column names. these prevent global variable warnings
+    clean_address <- sym("clean_address")
     raw_address <- sym("raw_address")
     unit <- sym("unit")
     street_number <- sym("street_number")
     all_street_suffix <- sym("all_street_suffix")
+    street_suffix <- sym("street_suffix")
 
+    # the big separation
     df <- .data |>
-      mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
       mutate({{ raw_address }} := {{ input_column }}, .before = {{ input_column }}) |>
+      mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
@@ -30,6 +34,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long")) |>
+      mutate({{ street_suffix }} := switch_abbreviation({{ all_street_suffix }}, "official_street_suffix", "long-to-short"))
 
     # see helpers.R for these functions
     # check street number ranges
@@ -40,6 +45,18 @@ clean_address <- function(.data, input_column, dataset = "default") {
       check_unit(unit, street_number, all_street_suffix) |>
       unite({{ unit }}, c("unit", "special_unit"), sep = " ", na.rm = TRUE) |>
       mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
+
+    # TODO: move to check_suffix function. also generally clean up use of address abbreviations.
+    abbr_tbl <- addressr::address_abbreviations
+    abbr_suff <- abbr_tbl[abbr_tbl$type == "official_street_suffix", ]
+    suff_pat <- str_collapse_bound(unique(c(abbr_suff$short, abbr_suff$long)))
+    suff_pat <- paste0("(?<=", suff_pat, ").*")
+
+    # tidy up for output
+    df <- df |>
+      rename("street_name" = {{ input_column }}, "original_street_suffix" = {{ all_street_suffix }}) |>
+      unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE) |>
+      mutate({{ clean_address }} := str_remove(clean_address, suff_pat))
 
   } else if (dataset == "default_db") {
 
