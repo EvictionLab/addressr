@@ -128,6 +128,11 @@ check_pattern <- function(pattern) {
 
     # pre-directions must be at the string start
     if (pattern == "pre_direction") {
+      pat <- paste0("^", pat, "(?!$)")
+    }
+
+    # pre-directions must be at the string start
+    if (pattern == "pre_direction_db") {
       pat <- paste0("^", pat)
     }
 

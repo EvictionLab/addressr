@@ -26,10 +26,10 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
       extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
-      extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
-      mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long"))
+      extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
+      mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long")) |>
 
     df <- df |> check_street_range("street_number_range", "street_number")
     df <- df |> check_unit(unit, street_number, all_street_suffix)
@@ -43,7 +43,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish_db({{ input_column }}, "unit", "unit") |>
       extract_remove_squish_db({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish_db({{ input_column }}, "building", "building") |>
-      extract_remove_squish_db({{ input_column }}, "pre_direction", "pre_direction") |>
+      extract_remove_squish_db({{ input_column }}, "pre_direction", "pre_direction_db") |>
       extract_remove_squish_db({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish_db({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
       compute()
