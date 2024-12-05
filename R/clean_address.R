@@ -34,7 +34,12 @@ clean_address <- function(.data, input_column, dataset = "default") {
     # see helpers.R for these functions
     # check street number ranges
     df <- df |> check_street_range("street_number_range", "street_number")
-    df <- df |> check_unit(unit, street_number, all_street_suffix)
+
+    # check units
+    df <- df |>
+      check_unit(unit, street_number, all_street_suffix) |>
+      unite({{ unit }}, c("unit", "special_unit"), sep = " ", na.rm = TRUE) |>
+      mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
 
   } else if (dataset == "default_db") {
 
