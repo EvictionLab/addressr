@@ -1,6 +1,6 @@
 Package: addressr
 Title: Clean Addresses
-Version: 0.0.0.9002
+Version: 0.0.0.9003
 Authors@R: 
     person("Sarah", "Johnson", , "sarah.johnson@princeton.edu", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
