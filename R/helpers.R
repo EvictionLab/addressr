@@ -188,6 +188,7 @@ check_street_range <- function(.data, street_number_range, street_number) {
     range_name_2 <- sym(paste0(street_number_range, "_2"))
 
     df_ranges <- df_ranges |>
+      mutate(street_number_range = str_remove_all(street_number_range, "\\s")) |>
       separate_wider_delim({{ street_number_range }}, delim = "-", names = c("1", "2"), names_sep = "_") |>
       mutate(
         # some street number ranges are the same number twice (105-105). only keep unique ranges

@@ -31,6 +31,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long")) |>
 
+    # see helpers.R for these functions
+    # check street number ranges
     df <- df |> check_street_range("street_number_range", "street_number")
     df <- df |> check_unit(unit, street_number, all_street_suffix)
 
