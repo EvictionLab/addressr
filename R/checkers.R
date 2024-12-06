@@ -65,7 +65,7 @@ check_pattern <- function(pattern) {
 }
 
 # If a street number range contains the same number twice, change it to a singular street number
-check_street_range <- function(.data, street_number_range, street_number) {
+check_street_range <- function(.data, street_number_range, street_number, addressr_id) {
 
   df_ranges <- .data |> filter(!is.na({{ street_number_range }}))
 
@@ -95,7 +95,7 @@ check_street_range <- function(.data, street_number_range, street_number) {
 
 }
 
-check_unit <- function(.data, unit, street_number, street_suffix) {
+check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
 
   df_unit <- .data |> filter(!is.na({{ unit }}))
 
@@ -124,7 +124,7 @@ check_unit <- function(.data, unit, street_number, street_suffix) {
 
 }
 
-check_building <- function(.data, street_number, street_number_range, building) {
+check_building <- function(.data, street_number, street_number_range, building, addressr_id) {
 
   df_bldg <- .data |>
     filter(is.na({{ street_number }}) & is.na({{ street_number_range }}) & !is.na({{ building }}) & str_detect({{ building }}, "\\d"))
