@@ -8,16 +8,15 @@ check_pattern <- function(pattern) {
   pat <- pattern
 
   # reference table: address_abbreviations
-  abbr_tbl <- addressr::address_abbreviations
-  abbr_types <- unique(abbr_tbl$type)
+  abbr_types <- unique(addr_abbr$type)
   # reference table: address_regex
   regex_tbl <- address_regex
   regex_types <- unique(regex_tbl$address_part)
 
   # both pre and post-directions use the "directions" table
   if (str_detect(pattern, "direction")) {
-    abbr_tbl <- abbr_tbl[abbr_tbl$type == "directions", ]
-    pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
+    addr_abbr <- addr_abbr[addr_abbr$type == "directions", ]
+    pat <- str_collapse_bound(unique(c(addr_abbr$short, addr_abbr$long)))
 
     # pre-directions must be at the string start
     if (pattern == "pre_direction") {
@@ -34,8 +33,8 @@ check_pattern <- function(pattern) {
   if (pattern %in% abbr_types) {
 
     # filter for address pattern type, get unique from each column
-    abbr_tbl <- abbr_tbl[abbr_tbl$type == pattern, ]
-    pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
+    addr_abbr <- addr_abbr[addr_abbr$type == pattern, ]
+    pat <- str_collapse_bound(unique(c(addr_abbr$short, addr_abbr$long)))
 
   }
 
@@ -50,14 +49,14 @@ check_pattern <- function(pattern) {
   }
 
   if (pattern == "unit_type") {
-    abbr_tbl <- abbr_tbl[abbr_tbl$type == "unit", ]
-    pat <- str_collapse_bound(unique(c(abbr_tbl$short, abbr_tbl$long)))
+    addr_abbr <- addr_abbr[addr_abbr$type == "unit", ]
+    pat <- str_collapse_bound(unique(c(addr_abbr$short, addr_abbr$long)))
   }
 
   # if it's in the regex table, it's already ready to go
   if (pattern %in% regex_types) {
-    abbr_tbl <- regex_tbl[regex_tbl$address_part == pattern, ]
-    pat <- abbr_tbl$regex
+    addr_abbr <- regex_tbl[regex_tbl$address_part == pattern, ]
+    pat <- addr_abbr$regex
 
   }
 
@@ -102,7 +101,6 @@ check_unit <- function(.data, unit, street_number, street_suffix) {
 
   if (nrow(df_unit) != 0) {
 
-    addr_abbr <- addressr::address_abbreviations
     abbr_street_suffix <- addr_abbr[addr_abbr$type == "all_street_suffix", ]
     abbr_street_suffix <- unique(c(abbr_street_suffix$short, abbr_street_suffix$long))
 

@@ -35,9 +35,8 @@ str_replace_names <- function(string, input, output) {
 #' @export
 switch_abbreviation <- function(string, type, method = "long-to-short") {
 
-  adr_abbr <- addressr::address_abbreviations
   # make a vector of the available abbreviation types
-  abbr_types <- unique(adr_abbr$type)
+  abbr_types <- unique(addr_abbr$type)
 
   # catch errors
   if (!type %in% abbr_types) {
@@ -49,7 +48,7 @@ switch_abbreviation <- function(string, type, method = "long-to-short") {
   }
 
   # filter abbreviations to the selected type
-  df <- adr_abbr[adr_abbr$type == type, ]
+  df <- addr_abbr[addr_abbr$type == type, ]
 
   # switch abbreviations based on method
   if (method == "short-to-long") {
@@ -70,8 +69,7 @@ switch_abbreviation <- function(string, type, method = "long-to-short") {
 #' @return A modified version of the original string
 #' @export
 switch_abbreviation_db <- function(.data, column, type, method = "long-to-short") {
-  adr_abbr <- addressr::address_abbreviations
-  abbr_types <- unique(adr_abbr$type)
+  abbr_types <- unique(addr_abbr$type)
 
   # catch errors
   if (!type %in% abbr_types) {
@@ -83,7 +81,7 @@ switch_abbreviation_db <- function(.data, column, type, method = "long-to-short"
   }
 
   # filter abbreviations to the selected type
-  lookup <- adr_abbr[adr_abbr$type == type, ]
+  lookup <- addr_abbr[addr_abbr$type == type, ]
 
   # switch abbreviations based on method
   if (method == "short-to-long") {

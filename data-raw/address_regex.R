@@ -9,4 +9,4 @@ address_regex <- tribble(
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d\\b"
 )
 
-usethis::use_data(address_regex, overwrite = TRUE, internal = TRUE)
+usethis::use_data(address_regex, addr_abbr, overwrite = TRUE, internal = TRUE)
