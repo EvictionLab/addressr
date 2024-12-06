@@ -12,6 +12,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
   if (dataset == "default") {
     # column names. these prevent global variable warnings
+    addressr_id <- sym("addressr_id")
     clean_address <- sym("clean_address")
     raw_address <- sym("raw_address")
     unit <- sym("unit")
@@ -23,7 +24,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # the big separation
     df <- .data |>
-      mutate({{ raw_address }} := {{ input_column }}, .before = {{ input_column }}) |>
+      mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>

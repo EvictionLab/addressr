@@ -68,12 +68,9 @@ check_pattern <- function(pattern) {
 # If a street number range contains the same number twice, change it to a singular street number
 check_street_range <- function(.data, street_number_range, street_number) {
 
-  addressr_id <- sym("addressr_id")
-  df <- .data |> mutate(addressr_id = row_number())
+  df_ranges <- .data |> filter(!is.na({{ street_number_range }}))
 
-  df_ranges <- df |> filter(!is.na({{ street_number_range }}))
-
-  df <- df |> anti_join(df_ranges, by = "addressr_id")
+  df <- .data |> anti_join(df_ranges, by = "addressr_id")
 
   if (nrow(df_ranges) != 0) {
 
@@ -91,22 +88,17 @@ check_street_range <- function(.data, street_number_range, street_number) {
       ) |>
       select(-c(range_name_1, range_name_2))
 
-    df <- bind_rows(df, df_ranges)
+    df <- bind_rows(df, df_ranges) |> arrange(addressr_id)
 
   }
-
-  df <- df |> select(-addressr_id)
 
 }
 
 check_unit <- function(.data, unit, street_number, all_street_suffix) {
 
-  addressr_id <- sym("addressr_id")
-  df <- .data |> mutate(addressr_id = row_number())
+  df_unit <- .data |> filter(!is.na({{ unit }}))
 
-  df_unit <- df |> filter(!is.na({{ unit }}))
-
-  df <- df |> anti_join(df_unit, by = "addressr_id")
+  df <- .data |> anti_join(df_unit, by = "addressr_id")
 
   if (nrow(df_unit) != 0) {
 
@@ -128,5 +120,4 @@ check_unit <- function(.data, unit, street_number, all_street_suffix) {
 
   }
 
-  df <- df |> select(-addressr_id)
 }
