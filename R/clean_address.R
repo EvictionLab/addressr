@@ -46,17 +46,10 @@ clean_address <- function(.data, input_column, dataset = "default") {
       unite({{ unit }}, c("unit", "special_unit"), sep = " ", na.rm = TRUE) |>
       mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
 
-    # TODO: move to check_suffix function. also generally clean up use of address abbreviations.
-    abbr_tbl <- addressr::address_abbreviations
-    abbr_suff <- abbr_tbl[abbr_tbl$type == "official_street_suffix", ]
-    suff_pat <- str_collapse_bound(unique(c(abbr_suff$short, abbr_suff$long)))
-    suff_pat <- paste0("(?<=", suff_pat, ").*")
-
     # tidy up for output
     df <- df |>
       rename("street_name" = {{ input_column }}, "original_street_suffix" = {{ all_street_suffix }}) |>
-      unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE) |>
-      mutate({{ clean_address }} := str_remove(clean_address, suff_pat))
+      unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
 
   } else if (dataset == "default_db") {
 
