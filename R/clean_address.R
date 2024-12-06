@@ -50,6 +50,9 @@ clean_address <- function(.data, input_column, dataset = "default") {
       unite({{ unit }}, c("unit", "special_unit"), sep = " ", na.rm = TRUE) |>
       mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
 
+    # check for missing street numbers in building column
+    df <- df |> check_building(street_number, street_number_range, building)
+
     # tidy up for output
     df <- df |>
       rename("street_name" = {{ input_column }}) |>

@@ -15,7 +15,8 @@ test_data <- tribble(
   "123 N Main St - DEPT 2",
   "123 1st st apt 7B",
   "123 - 123 N Main St Apt 32",
-  "123-125 N Main St Apt 32"
+  "123-125 N Main St Apt 32",
+  "123A Main Street South"
 ) |>
   clean_address(address) |>
   janitor::remove_empty("cols")
