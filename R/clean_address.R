@@ -18,6 +18,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
     street_number <- sym("street_number")
     all_street_suffix <- sym("all_street_suffix")
     street_suffix <- sym("street_suffix")
+    pre_direction <- sym("pre_direction")
+    post_direction <- sym("post_direction")
 
     # the big separation
     df <- .data |>
@@ -34,7 +36,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long")) |>
-      mutate({{ street_suffix }} := switch_abbreviation({{ all_street_suffix }}, "official_street_suffix", "long-to-short"))
+      mutate({{ street_suffix }} := switch_abbreviation({{ all_street_suffix }}, "official_street_suffix", "long-to-short")) |>
+      mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")))
 
     # see helpers.R for these functions
     # check street number ranges
