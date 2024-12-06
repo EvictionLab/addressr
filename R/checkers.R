@@ -94,7 +94,7 @@ check_street_range <- function(.data, street_number_range, street_number) {
 
 }
 
-check_unit <- function(.data, unit, street_number, all_street_suffix) {
+check_unit <- function(.data, unit, street_number, street_suffix) {
 
   df_unit <- .data |> filter(!is.na({{ unit }}))
 
@@ -103,17 +103,17 @@ check_unit <- function(.data, unit, street_number, all_street_suffix) {
   if (nrow(df_unit) != 0) {
 
     addr_abbr <- addressr::address_abbreviations
-    street_suffix <- addr_abbr[addr_abbr$type == "all_street_suffix", ]
-    street_suffix <- unique(c(street_suffix$short, street_suffix$long))
+    abbr_street_suffix <- addr_abbr[addr_abbr$type == "all_street_suffix", ]
+    abbr_street_suffix <- unique(c(abbr_street_suffix$short, abbr_street_suffix$long))
 
     df_unit <- df_unit |>
       mutate(
         # remove all non-word characters
         {{ unit }} := str_remove_all(unit, "\\W"),
         # check unit for street suffix
-        {{ all_street_suffix }} := if_else(is.na({{ all_street_suffix }}) & ({{ unit }} %in% street_suffix), {{ unit }}, {{ all_street_suffix }}),
+        {{ street_suffix }} := if_else(is.na({{ street_suffix }}) & ({{ unit }} %in% abbr_street_suffix), {{ unit }}, {{ street_suffix }}),
         # check if unit duplicates street number
-        {{ unit }} := if_else({{ unit }} == {{ street_number }} | {{ unit }} == {{ all_street_suffix }}, NA_character_, {{ unit }})
+        {{ unit }} := if_else({{ unit }} == {{ street_number }} | {{ unit }} == {{ street_suffix }}, NA_character_, {{ unit }})
       )
 
     df <- bind_rows(df, df_unit) |> arrange(addressr_id)

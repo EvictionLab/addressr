@@ -34,10 +34,10 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
-      extract_remove_squish({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
+      extract_remove_squish({{ input_column }}, "street_suffix", "all_street_suffix") |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction") |>
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinal", "short-to-long")) |>
-      mutate({{ street_suffix }} := switch_abbreviation({{ all_street_suffix }}, "official_street_suffix", "long-to-short")) |>
+      mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffix", "long-to-short")) |>
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")))
 
     # see helpers.R for these functions
@@ -46,13 +46,13 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # check units
     df <- df |>
-      check_unit(unit, street_number, all_street_suffix) |>
+      check_unit(unit, street_number, street_suffix) |>
       unite({{ unit }}, c("unit", "special_unit"), sep = " ", na.rm = TRUE) |>
       mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
 
     # tidy up for output
     df <- df |>
-      rename("street_name" = {{ input_column }}, "original_street_suffix" = {{ all_street_suffix }}) |>
+      rename("street_name" = {{ input_column }}) |>
       unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
 
   } else if (dataset == "default_db") {
