@@ -127,7 +127,7 @@ check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
         # check unit for street suffix
         {{ street_suffix }} := if_else(is.na({{ street_suffix }}) & ({{ unit }} %in% abbr_street_suffix), {{ unit }}, {{ street_suffix }}),
         # check if unit duplicates street number
-        {{ unit }} := if_else({{ unit }} == {{ street_number }} | {{ unit }} == {{ street_suffix }}, NA_character_, {{ unit }})
+        {{ unit }} := if_else(!is.na({{ street_number }}) & ({{ unit }} == {{ street_number }} | {{ unit }} == {{ street_suffix }}), NA_character_, {{ unit }})
       )
 
     df <- bind_rows(df, df_unit) |> arrange(addressr_id)
