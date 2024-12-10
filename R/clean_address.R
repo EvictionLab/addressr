@@ -29,6 +29,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
+      extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
@@ -57,6 +58,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # tidy up for output
     df <- df |>
+      mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
       rename("street_name" = {{ input_column }}) |>
       unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
 
