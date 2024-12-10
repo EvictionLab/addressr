@@ -64,13 +64,13 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     df <- .data |>
       extract_remove_squish_db({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
-      extract_remove_squish_db({{ input_column }}, "street_number_range", "street_number_range") |>
+      extract_remove_squish_db({{ input_column }}, "street_number_range", "street_number_range_db") |>
       extract_remove_squish_db({{ input_column }}, "street_number", "street_number") |>
-      extract_remove_squish_db({{ input_column }}, "unit", "unit") |>
+      extract_remove_squish_db({{ input_column }}, "unit", "unit_db") |>
       extract_remove_squish_db({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish_db({{ input_column }}, "building", "building") |>
       extract_remove_squish_db({{ input_column }}, "pre_direction", "pre_direction_db") |>
-      extract_remove_squish_db({{ input_column }}, "post_direction", "post_direction") |>
+      extract_remove_squish_db({{ input_column }}, "post_direction", "post_direction_db") |>
       extract_remove_squish_db({{ input_column }}, "all_street_suffix", "all_street_suffix") |>
       compute()
 

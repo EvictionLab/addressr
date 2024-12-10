@@ -166,7 +166,31 @@ ordinals <- tribble(
   "97TH", "NINETY-SEVENTH",
   "98TH", "NINETY-EIGHTH",
   "99TH", "NINETY-NINTH",
-  "100TH", "ONE HUNDREDTH"
+  "100TH", "ONE HUNDREDTH",
+  "101ST", "ONE HUNDRED FIRST",
+  "102ND", "ONE HUNDRED SECOND",
+  "103RD", "ONE HUNDRED THIRD",
+  "104TH", "ONE HUNDRED FOURTH",
+  "105TH", "ONE HUNDRED FIFTH",
+  "106TH", "ONE HUNDRED SIXTH",
+  "107TH", "ONE HUNDRED SEVENTH",
+  "108TH", "ONE HUNDRED EIGHTH",
+  "109TH", "ONE HUNDRED NINTH",
+  "110TH", "ONE HUNDRED TENTH",
+  "111TH", "ONE HUNDRED ELEVENTH",
+  "112TH", "ONE HUNDRED TWELFTH",
+  "113TH", "ONE HUNDRED THIRTEENTH",
+  "114TH", "ONE HUNDRED FOURTEENTH",
+  "115TH", "ONE HUNDRED FIFTEENTH",
+  "116TH", "ONE HUNDRED SIXTEENTH",
+  "117TH", "ONE HUNDRED SEVENTEENTH",
+  "118TH", "ONE HUNDRED EIGHTEENTH",
+  "119TH", "ONE HUNDRED NINETEENTH",
+  "120TH", "ONE HUNDRED TWENTIETH",
+  "121ST", "ONE HUNDRED TWENTY-FIRST",
+  "122ND", "ONE HUNDRED TWENTY-SECOND",
+  "123RD", "ONE HUNDRED TWENTY-THIRD",
+  "124TH", "ONE HUNDRED TWENTY-FOURTH",
 ) |> mutate(type = "ordinal")
 
 # Unit Types
@@ -180,8 +204,11 @@ unit_types <- tribble(
   "RM", "ROOM",
   "PH", "PENTHOUSE",
   "DEPT", "DEPARTMENT",
+  "DUPLEX", "DUPLEX",
+  "ATTIC", "ATTIC",
   "LOT", "LOT",
-  "OFFICE", "OFFICE",
+  "LVL", "LEVEL",
+  "OFC", "OFFICE",
   "#", "#",
 ) |> mutate(type = "unit")
 
@@ -189,21 +216,26 @@ unit_types <- tribble(
 special_unit <- tribble(
   ~short, ~long,
   "UPPR FRONT", "UPPER FRONT",
-  "UPPER FRONT", "UPPER FRONT",
+  "UPPER/FRONT", "UPPER FRONT",
+  "FRNT UPPER", "UPPER FRONT",
   "UPPR REAR", "UPPER REAR",
-  "UPPER REAR", "UPPER REAR",
-  "LOWER FRONT", "LOWER FRONT",
+  "LOWER/FRONT", "LOWER FRONT",
   "LOWR FRONT", "LOWER FRONT",
-  "LOWER REAR", "LOWER REAR",
+  "FRNT LOWER", "LOWER FRONT",
+  "LOWER/REAR", "LOWER REAR",
   "LOWR REAR", "LOWER REAR",
-  "REAR ATTIC", "REAR ATTIC",
+  "LOWER BACK", "LOWER REAR",
+  "LOWR BACK", "LOWER REAR",
   "UPPR", "UPPER",
+  "LOWR", "LOWER",
   "LWR", "LOWER",
-  "FRONT", "FRONT",
+  "FRNT", "FRONT",
   "REAR", "REAR",
-  "ATTIC", "ATTIC",
+  "BACK", "BACK",
 ) |> mutate(type = "special_unit")
 
 address_abbreviations <- bind_rows(directions, all_street_suffix, add_suffix, official_suffix, ordinals, unit_types, special_unit)
+
+addr_abbr <- address_abbreviations
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)
