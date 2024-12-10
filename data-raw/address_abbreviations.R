@@ -1,6 +1,27 @@
-## code to prepare `address_abbreviations` dataset goes here
+## This page contains code to prepare the following datasets:
+#' `address_abbreviations`/`addr_abbr` (for internal use): lookup tables w/
+#' common address abbr. Do not include regex in these tables.
+#' `address_regex`: A single string of regex
+#'
 
-# Directions
+## a list of all letters excluding N, S, E, W, and O
+# letter_no_NSEWO <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W", "O")])
+
+# main address reference
+address_regex <- tribble(
+  ~address_part, ~regex,
+  "street_number", "^\\d+\\b",
+  "street_number_multi", "^\\d+\\b(\\W)+(\\d+\\b(\\W|AND)+){2,}(?! [STNDRH]{2})",
+  "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
+  "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
+  "street_number_fraction", "\\d/\\d\\b",
+  "building", "^\\d+[A-Z]\\b|^[A-Z]\\d\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
+  "po_box", "(P( )?O )?BOX \\w+",
+  "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
+)
+
+
+# directions
 directions <- tribble(
   ~short, ~long,
   "N", "NORTH",
@@ -27,19 +48,19 @@ if (!file.exists("data-raw/usps-street-suffix.csv")) {
 
 street_suffix_raw <- read_csv("data-raw/usps-street-suffix.csv")
 
-all_street_suffix <- street_suffix_raw |>
+official_street_suffixes <- street_suffix_raw |>
+  select(short = 3, long = 1) |> distinct() |>
+  filter(short != long) |>
+  mutate(type = "official_street_suffixes")
+
+all_street_suffixes_1 <- street_suffix_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
   distinct() |>
   rename(short = 1, long = 2) |>
   filter(short != long) |>
-  mutate(type = "all_street_suffix")
+  mutate(type = "all_street_suffixes")
 
-official_suffix <- street_suffix_raw |>
-  select(short = 3, long = 1) |> distinct() |>
-  filter(short != long) |>
-  mutate(type = "official_street_suffix")
-
-add_suffix <- tribble(
+all_street_suffixes_2 <- tribble(
   ~short, ~long,
   "B LVD", "BLVD",
   "BVD", "BLVD",
@@ -62,7 +83,9 @@ add_suffix <- tribble(
   "TRL PARK", "MHP",
   "TRL PK", "MHP"
 ) |>
-  mutate(type = "all_street_suffix")
+  mutate(type = "all_street_suffixes")
+
+all_street_suffixes <- bind_rows(all_street_suffixes_1, all_street_suffixes_2)
 
 # Ordinal Number Streets
 ordinals <- tribble(
@@ -191,7 +214,7 @@ ordinals <- tribble(
   "122ND", "ONE HUNDRED TWENTY-SECOND",
   "123RD", "ONE HUNDRED TWENTY-THIRD",
   "124TH", "ONE HUNDRED TWENTY-FOURTH",
-) |> mutate(type = "ordinal")
+) |> mutate(type = "ordinals")
 
 # Unit Types
 unit_types <- tribble(
@@ -210,10 +233,10 @@ unit_types <- tribble(
   "LVL", "LEVEL",
   "OFC", "OFFICE",
   "#", "#",
-) |> mutate(type = "unit")
+) |> mutate(type = "unit_types")
 
 # Special Units
-special_unit <- tribble(
+special_units <- tribble(
   ~short, ~long,
   "UPPR FRONT", "UPPER FRONT",
   "UPPER/FRONT", "UPPER FRONT",
@@ -232,10 +255,12 @@ special_unit <- tribble(
   "FRNT", "FRONT",
   "REAR", "REAR",
   "BACK", "BACK",
-) |> mutate(type = "special_unit")
+) |> mutate(type = "special_units")
 
-address_abbreviations <- bind_rows(directions, all_street_suffix, add_suffix, official_suffix, ordinals, unit_types, special_unit)
+address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units)
 
 addr_abbr <- address_abbreviations
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)
+
+usethis::use_data(address_regex, addr_abbr, directions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
