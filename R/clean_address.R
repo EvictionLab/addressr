@@ -48,15 +48,15 @@ clean_address <- function(.data, input_column, dataset = "default") {
   if (dataset == "default") {
     original_row_id <- sym("original_row_id")
 
-    # preserve original input
+    # step 1: preserve original input
     df <- .data |>
-      mutate(
-        {{ raw_address }} := {{ input_column }},
-        {{ original_row_id }} := row_number(),
-        .before = {{ input_column }}) |>
+      mutate({{ raw_address }} := {{ input_column }},
+             {{ original_row_id }} := row_number(),
+             .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }}))
 
-    # separate out multiple addresses
+    # step 2: separate out multiple addresses
+    # current logic: (etc + street suffix) + [punctuation, and, or space] + (numbers + etc + street suffix)
     all_suffix_regex <- str_collapse_bound(unique(c(all_street_suffixes$long, all_street_suffixes$short)))
     longer_regex <- paste0("(?<=", all_suffix_regex, ")(\\s)?([:punct:]| AND |\\s)(\\s)?(?=\\d+\\b[\\W\\w\\s]+", all_suffix_regex, ")")
 
@@ -66,7 +66,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ addressr_id }} := row_number(), .by = "original_row_id", .after = "original_row_id") |>
       unite({{ addressr_id }}, c("original_row_id", "addressr_id"), sep = "-", remove = FALSE)
 
-    # the big separation
+    # step 3: separate out address components from each address & standardize spellings
+    # idea: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
