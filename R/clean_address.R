@@ -46,11 +46,28 @@ clean_address <- function(.data, input_column, dataset = "default") {
   }
 
   if (dataset == "default") {
+    original_row_id <- sym("original_row_id")
+
+    # preserve original input
+    df <- .data |>
+      mutate(
+        {{ raw_address }} := {{ input_column }},
+        {{ original_row_id }} := row_number(),
+        .before = {{ input_column }}) |>
+      mutate({{ input_column }} := str_to_upper({{ input_column }}))
+
+    # separate out multiple addresses
+    all_suffix_regex <- str_collapse_bound(unique(c(all_street_suffixes$long, all_street_suffixes$short)))
+    longer_regex <- paste0("(?<=", all_suffix_regex, ")(\\s)?([:punct:]| AND |\\s)(\\s)?(?=\\d+\\b[\\W\\w\\s]+", all_suffix_regex, ")")
+
+    df <- df |>
+      separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex)) |>
+      distinct() |>
+      mutate({{ addressr_id }} := row_number(), .by = "original_row_id", .after = "original_row_id") |>
+      unite({{ addressr_id }}, c("original_row_id", "addressr_id"), sep = "-", remove = FALSE)
 
     # the big separation
-    df <- .data |>
-      mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
-      mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
+    df <- df |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
@@ -83,6 +100,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- df |>
       mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
       rename("street_name" = {{ input_column }}) |>
+      arrange({{ original_row_id }}, {{ addressr_id }}) |>
       unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
 
   } else if (dataset == "default_db") {

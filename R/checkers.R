@@ -98,7 +98,7 @@ check_street_range <- function(.data, street_number_range, street_number, addres
       ) |>
       select(-c(range_1, range_2))
 
-    df <- bind_rows(df, df_ranges) |> arrange(addressr_id)
+    df <- bind_rows(df, df_ranges)
 
   }
 
@@ -126,7 +126,7 @@ check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
         {{ unit }} := if_else(!is.na({{ street_number }}) & ({{ unit }} == {{ street_number }} | {{ unit }} == {{ street_suffix }}), NA_character_, {{ unit }})
       )
 
-    df <- bind_rows(df, df_unit) |> arrange(addressr_id)
+    df <- bind_rows(df, df_unit)
 
   }
 
@@ -146,7 +146,7 @@ check_building <- function(.data, street_number, street_number_range, building, 
 
     df_bldg <- df_bldg |> extract_remove_squish({{ building }}, "street_number", "\\d+")
 
-    df <- bind_rows(df, df_bldg) |> arrange(addressr_id)
+    df <- bind_rows(df, df_bldg)
 
   }
 
