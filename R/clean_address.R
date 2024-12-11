@@ -16,6 +16,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
   unit <- sym("unit")
   street_number <- sym("street_number")
   street_number_range <- sym("street_number_range")
+  street_number_multi <- sym("street_number_multi")
   all_street_suffix <- sym("all_street_suffix")
   street_suffix <- sym("street_suffix")
   pre_direction <- sym("pre_direction")

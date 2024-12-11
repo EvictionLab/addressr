@@ -75,10 +75,17 @@ check_pattern <- function(pattern) {
 
 }
 
-# If a street number range contains the same number twice, change it to a singular street number
 check_street_range <- function(.data, street_number_multi, street_number, addressr_id) {
 
+  street_number_first <- sym("street_number_first")
+  street_number_n <- sym("street_number_n")
   street_number_id <- sym("street_number_id")
+  street_number_min <- sym("street_number_min")
+  street_number_max <- sym("street_number_max")
+  street_number_diff <- sym("street_number_diff")
+  street_number_first_length <- sym("street_number_first_length")
+  street_number_length <- sym("street_number_length")
+  street_number_logic <- sym("street_number_logic")
 
   df_ranges <- .data |> filter(!is.na(street_number_multi))
 
@@ -87,26 +94,47 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
   if (nrow(df_ranges) != 0) {
 
     df_ranges <- df_ranges |>
-      mutate(street_number_multi = str_replace_all(street_number_multi, "\\W|AND", " ") |> str_squish()) |>
+      mutate(street_number_multi = str_replace_all(street_number_multi, "\\W|AND", " ") |> str_squish(),
+             street_number_first = str_extract(street_number_multi, "^\\d+\\b")) |>
       separate_longer_delim(street_number_multi, delim = " ") |>
       distinct() |>
+      mutate(
+        street_number_id = row_number(),
+        street_number_first_length = str_length(street_number_first),
+        street_number_length = str_length(street_number_multi),
+        .by = "addressr_id")
+
+    # Correct for street numbers ranges with inconsistent digits like "123 25 27"
+    df_length <- df_ranges |> filter(street_number_length < street_number_first_length)
+
+    df_ranges <- df_ranges |> anti_join(df_length, by = c("addressr_id", "street_number_id"))
+
+    if (nrow(df_length) != 0) {
+
+      df_length <- df_length |>
+        mutate(
+          {{street_number_multi}} := paste0(str_sub(street_number_first, end = (street_number_first_length - street_number_length)), street_number_multi),
+        )
+
+      df_ranges <- bind_rows(df_ranges, df_length) |> arrange(addressr_id, street_number_id)
+
+    }
+
+    df_ranges <- df_ranges |>
       mutate(street_number_n = n(),
-             street_number_id = row_number(),
              street_number_min = min(as.numeric(street_number_multi)),
              street_number_max = max(as.numeric(street_number_multi)),
              street_number_diff = street_number_max - street_number_min,
-             street_number_max_length = str_length(street_number_max),
-             street_number_min_length = str_length(street_number_min),
              street_number_logic = case_when(
                street_number_n == 1 ~ "street_number",
                street_number_n > 2 ~ "ready",
                street_number_n == 2 & street_number_diff == 2 ~ "ready",
                street_number_n == 2 & street_number_diff > 2 & street_number_diff <= 20 ~ "seq_along",
-               street_number_n == 2 & street_number_diff > 20 ~ "check_length",
                .default = "error"
              ),
              .by = "addressr_id")
 
+    # Repair 1: If there's only one distinct street_number, place it in the street_number column and finish.
     df_ranges_one <- df_ranges |> filter(street_number_logic == "street_number")
 
     df_ranges <- df_ranges |> anti_join(df_ranges_one, by = "addressr_id")
@@ -115,12 +143,13 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
       df_ranges_one <- df_ranges_one |>
         extract_remove_squish(street_number_multi, street_number, "\\d+") |>
-        select(-c(street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+        select(-c(street_number_first, street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
       df <- bind_rows(df, df_ranges_one)
 
     }
 
+    # Repair 2: If there's 3+ numbers of the same length or two numbers next to each other, place in the street_number column and finish.
     df_ranges_two <- df_ranges |> filter(street_number_logic == "ready")
 
     df_ranges <- df_ranges |> anti_join(df_ranges_two, by = "addressr_id")
@@ -130,12 +159,13 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
       df_ranges_two <- df_ranges_two |>
         extract_remove_squish(street_number_multi, street_number, "\\d+") |>
         unite({{ addressr_id }}, c("addressr_id", "street_number_id"), sep = "-N", remove = TRUE) |>
-        select(-c(street_number_n, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+        select(-c(street_number_first, street_number_n, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
       df <- bind_rows(df, df_ranges_two)
 
     }
 
+    # Repair 3: If there's two numbers and they're between 2 and 20 digits apart, find each number in the sequence.
     df_ranges_three <- df_ranges |> filter(street_number_logic == "seq_along")
 
     df_ranges <- df_ranges |> anti_join(df_ranges_three, by = "addressr_id")
@@ -151,12 +181,13 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
                {{ street_number_multi }} := NA_character_,
                .by = "addressr_id") |>
         unite({{ addressr_id }}, c("addressr_id", "street_number_id"), sep = "-N", remove = TRUE) |>
-        select(-c(street_number_n, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+        select(-c(street_number_first, street_number_n, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
       df <- bind_rows(df, df_ranges_three)
 
     }
 
+    # Catch all
     df_ranges_four <- df_ranges |> filter(!street_number_logic %in% c("street_number", "ready", "seq_along"))
 
     df_ranges <- df_ranges |> anti_join(df_ranges_four, by = "addressr_id")
@@ -164,14 +195,14 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
     if (nrow(df_ranges_four) != 0) {
 
       df_ranges_four <- df_ranges_four |>
-        select(-c(street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+        select(-c(street_number_first, street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
       df <- bind_rows(df, df_ranges_four)
 
     }
 
     df_ranges <- df_ranges |>
-      select(-c(street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+      select(-c(street_number_first, street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
     df <- bind_rows(df, df_ranges)
 
