@@ -84,7 +84,6 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- df |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
-      extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
       extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
@@ -99,7 +98,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # see checkers.r for these functions
     # check street number ranges
-    df <- df |> check_street_range(street_number_range, street_number, addressr_id)
+    df <- df |> check_street_range(street_number_multi, street_number, addressr_id)
 
     # check units
     df <- df |>
@@ -108,14 +107,14 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
 
     # check for missing street numbers in building column
-    df <- df |> check_building(street_number, street_number_range, building, addressr_id)
+    df <- df |> check_building(street_number, street_number_multi, building, addressr_id)
 
     # tidy up for output
     df <- df |>
       mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
       rename("street_name" = {{ input_column }}) |>
       arrange({{ original_row_id }}, {{ addressr_id }}) |>
-      unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
+      unite("clean_address", c("street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
 
   } else if (dataset == "default_db") {
 

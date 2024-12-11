@@ -31,11 +31,12 @@ test_data <- tribble(
   "121 123 125 N Main St",
   "121-125 N Main St And 187 S Main St",
   "121-125 N Main St / 187-189 S Main St",
-  "123 125 N Main St Apt 32",
+  "123 125 N Main St Apt 32 #",
   "123A Main Street South",
   "123 A Main Street South",
   "12135, 12215, 12205 AND 12221 W Main Ave",
   "12135, 12215, 12205 & 12221 W Main Ave",
+  "12135, 215, 205 & 221 W Main Ave",
 ) |>
   clean_address(address) |>
   janitor::remove_empty("cols")

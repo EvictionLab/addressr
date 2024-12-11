@@ -76,27 +76,102 @@ check_pattern <- function(pattern) {
 }
 
 # If a street number range contains the same number twice, change it to a singular street number
-check_street_range <- function(.data, street_number_range, street_number, addressr_id) {
+check_street_range <- function(.data, street_number_multi, street_number, addressr_id) {
 
-  df_ranges <- .data |> filter(!is.na({{ street_number_range }}))
+  street_number_id <- sym("street_number_id")
+
+  df_ranges <- .data |> filter(!is.na(street_number_multi))
 
   df <- .data |> anti_join(df_ranges, by = "addressr_id")
 
   if (nrow(df_ranges) != 0) {
 
-    range_1 <- sym("range_1")
-    range_2 <- sym("range_2")
+    df_ranges <- df_ranges |>
+      mutate(street_number_multi = str_replace_all(street_number_multi, "\\W|AND", " ") |> str_squish()) |>
+      separate_longer_delim(street_number_multi, delim = " ") |>
+      distinct() |>
+      mutate(street_number_n = n(),
+             street_number_id = row_number(),
+             street_number_min = min(as.numeric(street_number_multi)),
+             street_number_max = max(as.numeric(street_number_multi)),
+             street_number_diff = street_number_max - street_number_min,
+             street_number_max_length = str_length(street_number_max),
+             street_number_min_length = str_length(street_number_min),
+             street_number_logic = case_when(
+               street_number_n == 1 ~ "street_number",
+               street_number_n > 2 ~ "ready",
+               street_number_n == 2 & street_number_diff == 2 ~ "ready",
+               street_number_n == 2 & street_number_diff > 2 & street_number_diff <= 20 ~ "seq_along",
+               street_number_n == 2 & street_number_diff > 20 ~ "check_length",
+               .default = "error"
+             ),
+             .by = "addressr_id")
+
+    df_ranges_one <- df_ranges |> filter(street_number_logic == "street_number")
+
+    df_ranges <- df_ranges |> anti_join(df_ranges_one, by = "addressr_id")
+
+    if (nrow(df_ranges_one) != 0) {
+
+      df_ranges_one <- df_ranges_one |>
+        extract_remove_squish(street_number_multi, street_number, "\\d+") |>
+        select(-c(street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+
+      df <- bind_rows(df, df_ranges_one)
+
+    }
+
+    df_ranges_two <- df_ranges |> filter(street_number_logic == "ready")
+
+    df_ranges <- df_ranges |> anti_join(df_ranges_two, by = "addressr_id")
+
+    if (nrow(df_ranges_two) != 0) {
+
+      df_ranges_two <- df_ranges_two |>
+        extract_remove_squish(street_number_multi, street_number, "\\d+") |>
+        unite({{ addressr_id }}, c("addressr_id", "street_number_id"), sep = "-N", remove = TRUE) |>
+        select(-c(street_number_n, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+
+      df <- bind_rows(df, df_ranges_two)
+
+    }
+
+    df_ranges_three <- df_ranges |> filter(street_number_logic == "seq_along")
+
+    df_ranges <- df_ranges |> anti_join(df_ranges_three, by = "addressr_id")
+
+    if (nrow(df_ranges_three) != 0) {
+
+      df_ranges_three <- df_ranges_three |>
+        filter(street_number_id == 1) |>
+        mutate({{ street_number }} := map2(street_number_min, street_number_max, ~ seq(.x, .y, by = 2))) |>
+        unnest_longer({{ street_number }}) |>
+        mutate({{ street_number }} := as.character({{ street_number }}),
+               {{ street_number_id }} := row_number(),
+               {{ street_number_multi }} := NA_character_,
+               .by = "addressr_id") |>
+        unite({{ addressr_id }}, c("addressr_id", "street_number_id"), sep = "-N", remove = TRUE) |>
+        select(-c(street_number_n, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+
+      df <- bind_rows(df, df_ranges_three)
+
+    }
+
+    df_ranges_four <- df_ranges |> filter(!street_number_logic %in% c("street_number", "ready", "seq_along"))
+
+    df_ranges <- df_ranges |> anti_join(df_ranges_four, by = "addressr_id")
+
+    if (nrow(df_ranges_four) != 0) {
+
+      df_ranges_four <- df_ranges_four |>
+        select(-c(street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
+
+      df <- bind_rows(df, df_ranges_four)
+
+    }
 
     df_ranges <- df_ranges |>
-      mutate(street_number_range = str_replace_all(street_number_range, "\\W|AND", " ") |> str_squish()) |>
-      separate_wider_delim({{ street_number_range }}, delim = " ", names = c("range_1", "range_2"), too_few = "align_start", too_many = "merge") |>
-      mutate(
-        # some street number ranges are the same number twice (105-105). only keep unique ranges
-        {{ street_number_range }} := if_else(range_1 != range_2, paste0(range_1, "-", range_2), NA_character_),
-        # for the ranges with duplicate numbers, save the number in the street_number col
-        {{ street_number }} := if_else(!is.na(range_1) & range_1 == range_2, range_1, street_number)
-      ) |>
-      select(-c(range_1, range_2))
+      select(-c(street_number_n, street_number_id, street_number_min, street_number_max, street_number_diff, street_number_max_length, street_number_min_length, street_number_logic))
 
     df <- bind_rows(df, df_ranges)
 
@@ -134,11 +209,11 @@ check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
 
 }
 
-check_building <- function(.data, street_number, street_number_range, building, addressr_id) {
+check_building <- function(.data, street_number, street_number_multi, building, addressr_id) {
 
   # if the street number is missing & there's a number in the building, extract it.
   df_bldg <- .data |>
-    filter(is.na({{ street_number }}) & is.na({{ street_number_range }}) & !is.na({{ building }}) & str_detect({{ building }}, "\\d"))
+    filter(is.na({{ street_number }}) & is.na({{ street_number_multi }}) & !is.na({{ building }}) & str_detect({{ building }}, "\\d"))
 
   df <- .data |> anti_join(df_bldg, by = "addressr_id")
 
