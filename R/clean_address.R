@@ -52,6 +52,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- .data |>
       mutate({{ raw_address }} := {{ input_column }},
              {{ original_row_id }} := row_number(),
+             {{ addressr_id }} := as.character({{ original_row_id }}),
              .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }}))
 
@@ -60,11 +61,23 @@ clean_address <- function(.data, input_column, dataset = "default") {
     all_suffix_regex <- str_collapse_bound(unique(c(all_street_suffixes$long, all_street_suffixes$short)))
     longer_regex <- paste0("(?<=", all_suffix_regex, ")(\\s)?([:punct:]| AND |\\s)(\\s)?(?=\\d+\\b[\\W\\w\\s]+", all_suffix_regex, ")")
 
-    df <- df |>
-      separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex)) |>
-      distinct() |>
-      mutate({{ addressr_id }} := row_number(), .by = "original_row_id", .after = "original_row_id") |>
-      unite({{ addressr_id }}, c("original_row_id", "addressr_id"), sep = "-", remove = FALSE)
+    df_multi <- df |> filter(str_detect({{ input_column }}, longer_regex))
+
+    df <- df |> anti_join(df_multi, by = "addressr_id")
+
+    if (nrow(df_multi) != 0) {
+      addressr_address_id <- sym("addressr_address_id")
+
+      df_multi <- df_multi |>
+        separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex)) |>
+        distinct() |>
+        mutate({{ addressr_address_id }} := row_number(), .by = "addressr_id") |>
+        unite({{ addressr_id }}, c("addressr_id", "addressr_address_id"), sep = "-A", remove = FALSE) |>
+        select(-addressr_address_id)
+
+      df <- bind_rows(df, df_multi)
+
+    }
 
     # step 3: separate out address components from each address & standardize spellings
     # idea: rework the first part & improve street numbers, units, and buildings together
