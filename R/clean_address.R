@@ -9,20 +9,43 @@
 #'    * New column containing the extracted strings.
 #' @export
 clean_address <- function(.data, input_column, dataset = "default") {
+  # column names. these prevent global variable warnings
+  addressr_id <- sym("addressr_id")
+  clean_address <- sym("clean_address")
+  raw_address <- sym("raw_address")
+  unit <- sym("unit")
+  street_number <- sym("street_number")
+  street_number_range <- sym("street_number_range")
+  all_street_suffix <- sym("all_street_suffix")
+  street_suffix <- sym("street_suffix")
+  pre_direction <- sym("pre_direction")
+  post_direction <- sym("post_direction")
+  building <- sym("building")
+
+  if (dataset == "quick") {
+    df <- .data |>
+      mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
+      mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
+      extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
+      extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
+      extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
+      extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
+      extract_remove_squish({{ input_column }}, "unit", "unit") |>
+      extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
+      extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
+      extract_remove_squish({{ input_column }}, "building", "building") |>
+      extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
+      extract_remove_squish({{ input_column }}, "street_suffix", "all_street_suffix") |>
+      extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction")
+
+    # tidy up for output
+    df <- df |>
+      mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
+      rename("street_name" = {{ input_column }}) |>
+      unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
+  }
 
   if (dataset == "default") {
-    # column names. these prevent global variable warnings
-    addressr_id <- sym("addressr_id")
-    clean_address <- sym("clean_address")
-    raw_address <- sym("raw_address")
-    unit <- sym("unit")
-    street_number <- sym("street_number")
-    street_number_range <- sym("street_number_range")
-    all_street_suffix <- sym("all_street_suffix")
-    street_suffix <- sym("street_suffix")
-    pre_direction <- sym("pre_direction")
-    post_direction <- sym("post_direction")
-    building <- sym("building")
 
     # the big separation
     df <- .data |>
