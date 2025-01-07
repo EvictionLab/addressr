@@ -31,6 +31,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- .data |>
       mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
+      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
       extract_remove_squish({{ input_column }}, "street_number_range", "street_number_range") |>
@@ -94,6 +95,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     tic("extract address parts")
     # idea: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
+      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
