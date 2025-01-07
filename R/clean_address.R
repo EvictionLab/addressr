@@ -1,7 +1,7 @@
 #' Clean Addresses
 #'
 #' @param .data A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).
-#' @param dataset The dataset to clean. Currently "lexis" is only available.
+#' @param dataset The dataset to clean. Either "default", "quick", or "default_db"
 #' @param input_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
 #'
 #' @return An object of the same type as .data, with the following properties:
