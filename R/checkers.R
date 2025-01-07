@@ -52,12 +52,13 @@ check_pattern <- function(pattern) {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long, "COTTAGE$")))
   }
 
-  # IMPORTANT: unit captures anything following the unit. use unit_type for only the unit_type
+  # IMPORTANT: unit_types will capture anything following the unit_type.
+  # use pattern = "unit_type" for only the unit_type
   if (pattern == "unit") {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long)))
     letter_unit <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W")])
 
-    pat <- paste0(pat, "(.*)?$|\\b\\d+(\\W)?[:alpha:]$|(?<!^)\\b[:alpha:](\\W)?(\\d+)?$|(?<!^)\\d+$|", letter_unit, "$|\\bCOTTAGE$")
+    pat <- paste0("(?<!^)(-\\W)?(", pat, ".*$|\\b\\d+(\\W)?\\w$|", letter_unit, "((\\W)+?\\d)?$|\\d+$|\\bCOTTAGE$)")
   }
 
   if (pattern == "unit_db") {
@@ -220,17 +221,11 @@ check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
 
   if (nrow(df_unit) != 0) {
 
-    abbr_street_suffix <- unique(c(all_street_suffixes$short, all_street_suffixes$long))
-
     df_unit <- df_unit |>
       mutate(
-        # remove all non-word characters
         {{ unit }} := str_remove_all(unit, "\\W"),
-        # check unit for street suffix
-        {{ street_suffix }} := if_else(is.na({{ street_suffix }}) & ({{ unit }} %in% abbr_street_suffix), {{ unit }}, {{ street_suffix }}),
-        # check if unit duplicates street number
         {{ unit }} := if_else(!is.na({{ street_number }}) & ({{ unit }} == {{ street_number }} | {{ unit }} == {{ street_suffix }}), NA_character_, {{ unit }})
-      )
+        )
 
     df <- bind_rows(df, df_unit)
 
