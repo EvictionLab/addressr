@@ -63,7 +63,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
              {{ original_row_id }} := row_number(),
              {{ addressr_id }} := as.character({{ original_row_id }}),
              .before = {{ input_column }}) |>
-      mutate({{ input_column }} := str_to_upper({{ input_column }}) |> str_remove_all("\\.") |> str_replace_all(",", " ") |> str_squish())
+      mutate({{ input_column }} := prep_address({{ input_column }}))
     toc()
 
     # step 2: separate out multiple addresses
