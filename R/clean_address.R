@@ -134,6 +134,14 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- df |> check_building(street_number, street_number_multi, building, addressr_id)
     toc()
 
+    df_num <- df |> filter(is.na({{street_number}}) & str_starts({{input_column}}, "\\d+"))
+    df <- df |> anti_join(df_num, by = "addressr_id")
+    if (nrow(df_num) != 0) {
+      df_num <- df_num |>
+        extract_remove_squish({{input_column}}, "street_number", "^\\d+")
+      df <- bind_rows(df, df_num)
+    }
+
     # tidy up for output
     tic("tidy output")
     df <- df |>
