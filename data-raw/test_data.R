@@ -19,6 +19,7 @@ test_data <- tribble(
   "123 Main St",
   "123 Cottage St",
   "123 Main St Rear Cottage",
+  "P.O. Box 123, Rocky Hill, NJ",
   "123 N Main St",
   "123 N Main St",
   "12 St Charles St",

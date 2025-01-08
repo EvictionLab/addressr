@@ -26,6 +26,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
   building <- sym("building")
   extra_back <- sym("extra_back")
   street_name <- sym("street_name")
+  po_box <- sym("po_box")
 
   if (dataset == "quick") {
 
@@ -34,6 +35,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- .data |>
       mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
+      extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
       extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
@@ -94,12 +96,22 @@ clean_address <- function(.data, input_column, dataset = "default") {
     }
     toc()
 
+    # step 2.5: find PO Boxes (maybe add other weird addresses here)
+    tic("extract p.o. boxes")
+    df_box <- df |>
+      extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
+      filter(!is.na(po_box))
+
+    df <- df |> anti_join(df_box, by = "addressr_id")
+    toc()
+
     # step 3: separate out address components from each address & standardize spellings
     tic("extract address parts")
     extra_regex <- str_glue("{all_suffix_regex}.*")
     # extra_regex <- paste0("(?<=(", all_suffix_regex, ")?.*", all_suffix_regex, ").*")
     # idea: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
+      extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
       extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
@@ -116,7 +128,9 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     toc()
 
+
     tic("standardize street suffix, directions & ordinals")
+
     df <- df |>
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinals", "short-to-long")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "long-to-short")) |>
@@ -152,13 +166,18 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # tidy up for output
     tic("tidy output")
+    # add back P.O. Boxes
+    if (nrow(df_box) != 0) {
+      df <- bind_rows(df, df_box)
+    }
+
     df <- df |>
       mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
       rename("street_name" = {{ input_column }}) |>
       unite({{ street_name }}, c("street_name", "street_suffix_2"), sep = " ", na.rm = TRUE) |>
       mutate({{ street_name }} := str_squish({{ street_name }}) |> na_if("")) |>
       arrange({{ original_row_id }}, {{ addressr_id }}) |>
-      unite("clean_address", c("street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
+      unite("clean_address", c("po_box", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
     toc()
 
     df
