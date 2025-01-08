@@ -173,6 +173,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     df <- df |>
       mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
+      mutate({{ input_column }} := str_replace_names({{ input_column }}, special_street_names$regex, special_street_names$output)) |>
       rename("street_name" = {{ input_column }}) |>
       unite({{ street_name }}, c("street_name", "street_suffix_2"), sep = " ", na.rm = TRUE) |>
       mutate({{ street_name }} := str_squish({{ street_name }}) |> na_if("")) |>
