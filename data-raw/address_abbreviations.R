@@ -59,6 +59,10 @@ official_street_suffixes <- street_suffix_raw |>
   filter(short != long) |>
   mutate(type = "official_street_suffixes")
 
+common_suffixes <- c("DR", "LN", "LANE", "AVE", "RD", "ST", "CIR", "CT", "PL", "WAY", "BLVD", "STRA", "CV")
+most_common_suffixes <- official_street_suffixes |>
+  filter(short %in% common_suffixes)
+
 all_street_suffixes_1 <- street_suffix_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
   distinct() |>
@@ -68,30 +72,33 @@ all_street_suffixes_1 <- street_suffix_raw |>
 
 all_street_suffixes_2 <- tribble(
   ~short, ~long,
-  "B LVD", "BLVD",
-  "BVD", "BLVD",
-  "BV", "BLVD",
-  "BLV", "BLVD",
-  "CI", "CIR",
-  "EX", "EXPRESSWAY",
-  "HY", "HWY",
-  "LA", "LANE",
-  "PY", "PKWY",
-  "TE", "TERRACE",
-  "TR", "TRACE",
-  "MOBILE HOME PARK", "MHP",
-  "MOBILE HOME PK", "MHP",
-  "MOBILE HOME DEV", "MHP",
-  "MOBILE HOME", "MHP",
-  "TRAILER PARK", "MHP",
-  "TRAILER PRK", "MHP",
-  "TRAILER PK", "MHP",
-  "TRL PARK", "MHP",
-  "TRL PK", "MHP"
+  "BLVD", "B LVD",
+  "BLVD", "BVD",
+  "BLVD", "BV",
+  "BLVD", "BLV",
+  "CIR", "CI",
+  "EXPRESSWAY", "EX",
+  "HWY", "HY",
+  "LANE", "LA",
+  "PKWY", "PY",
+  "TERRACE", "TE",
+  "TRACE", "TR",
+  "MHP", "MOBILE HOME PARK",
+  "MHP", "MOBILE HOME PK",
+  "MHP", "MOBILE HOME DEV",
+  "MHP", "MOBILE HOME",
+  "MHP", "TRAILER PARK",
+  "MHP", "TRAILER PRK",
+  "MHP", "TRAILER PK",
+  "MHP", "TRL PARK",
+  "MHP", "TRL PK",
 ) |>
   mutate(type = "all_street_suffixes")
 
 all_street_suffixes <- bind_rows(all_street_suffixes_1, all_street_suffixes_2)
+
+least_common_suffixes <- all_street_suffixes |>
+  filter(!short %in% common_suffixes & !long %in% common_suffixes)
 
 # Ordinal Number Streets
 ordinals <- tribble(
@@ -269,4 +276,4 @@ addr_abbr <- address_abbreviations
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)
 
-usethis::use_data(special_street_names, address_regex, addr_abbr, directions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
+usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
