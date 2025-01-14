@@ -31,6 +31,7 @@ address_table <- dplyr::tribble(
   ~address, ~city, ~state,
   "456 Jersey Avenue #102", "Montclair", "NJ",
   "123-125 N Street Rd", "Cincinnati", "OH",
+  "928-928 S Montgomery Ave 1500-1502 1550 Ptree Rd", "Atlanta", "GA",
   "789 Pirate Cv East", "Memphis", "TN",
   "3548 1ST ST FL 1", "St. Louis", "MO"
 )
@@ -39,108 +40,101 @@ address_table <- dplyr::tribble(
 Geocoders can be thrown off by various things, such as address ranges,
 unit numbers, directionals, and street endings.
 
-The `clean_address()` function streamlines address cleaning in a
-standardized pattern:
-
-- Convert all characters to uppercase
-- Tweeze apart the address column into components
-- Rename ordinal street names (“1ST” = “FIRST”)
+The `clean_address()` function streamlines address cleaning and outputs
+data into a standard format
 
 ``` r
 library(addressr)
 library(dplyr)
 
-address_out <- address_table[, 1] |> 
-  clean_address(address) |> 
-  # clean_address(address, dataset = "default_db") |>   # for duckdb tbls
-  select(street_number, street_number_range, pre_direction, 
-         street_name = address, all_street_suffix, post_direction, unit)
+cleaned_addresses <- address_table |> clean_address(address)
+#> preserve original data: 0.01 sec elapsed
+#> separate multiple addresses: 0.01 sec elapsed
+#> extract address parts: 0.012 sec elapsed
+#> standardize street suffix, directions & ordinals: 0.023 sec elapsed
+#> check street ranges: 0.014 sec elapsed
+#> check units: 0.009 sec elapsed
+#> check buildings: 0.001 sec elapsed
+#> tidy output: 0.007 sec elapsed
+#> total clean time: 0.088 sec elapsed
 
-address_out
-#> # A tibble: 4 × 7
-#>   street_number street_number_range pre_direction street_name all_street_suffix
-#>   <chr>         <chr>               <chr>         <chr>       <chr>            
-#> 1 456           <NA>                <NA>          JERSEY      AVENUE           
-#> 2 <NA>          123-125             N             STREET      RD               
-#> 3 789           <NA>                <NA>          PIRATE      CV               
-#> 4 3548          <NA>                <NA>          FIRST       ST               
-#> # ℹ 2 more variables: post_direction <chr>, unit <chr>
+cleaned_addresses |> janitor::remove_empty("cols")
+#> # A tibble: 9 × 13
+#>   raw_address  original_row_id addressr_id clean_address street_name city  state
+#>   <chr>                  <int> <chr>       <chr>         <chr>       <chr> <chr>
+#> 1 456 Jersey …               1 1           456 JERSEY A… JERSEY      Mont… NJ   
+#> 2 123-125 N S…               2 2-N1        123 N STREET… N           Cinc… OH   
+#> 3 123-125 N S…               2 2-N2        125 N STREET… N           Cinc… OH   
+#> 4 928-928 S M…               3 3-A1        928 S MONTGO… MONTGOMERY  Atla… GA   
+#> 5 928-928 S M…               3 3-A2-N1     1500 PEACHTR… PEACHTREE   Atla… GA   
+#> 6 928-928 S M…               3 3-A2-N2     1502 PEACHTR… PEACHTREE   Atla… GA   
+#> 7 928-928 S M…               3 3-A2-N3     1550 PEACHTR… PEACHTREE   Atla… GA   
+#> 8 789 Pirate …               4 4           789 PIRATE C… PIRATE      Memp… TN   
+#> 9 3548 1ST ST…               5 5           3548 FIRST S… FIRST       St. … MO   
+#> # ℹ 6 more variables: street_number <chr>, unit <chr>, unit_type <chr>,
+#> #   post_direction <chr>, street_suffix <chr>, pre_direction <chr>
 ```
 
-Behind the function is `extract_remove_squish()`, which will
-
-- input `.data` with a column of address data
-- extract a regex pattern from the `original_column`
-- output the extracted string into a `new_column`
-- trim the original column of extra whitespace or non-word characters
-  (`\\W+`)
-- the `pattern` may be a string or a named address component, from one
-  of the tables mentioned above
-
-To use the function, call
-`extract_remove_squish(original_column, new_column, pattern)`.
-
-``` r
-address_table |>
-  extract_remove_squish(address, unit, "unit") |>
-  # extract_remove_squish_db("original_column", "new_column", "pattern") # duckdb
-  select(address, unit, everything())
-#> # A tibble: 4 × 4
-#>   address             unit  city       state
-#>   <chr>               <chr> <chr>      <chr>
-#> 1 456 Jersey Avenue   #102  Montclair  NJ   
-#> 2 123-125 N Street Rd <NA>  Cincinnati OH   
-#> 3 789 Pirate Cv East  <NA>  Memphis    TN   
-#> 4 3548 1ST ST         FL 1  St. Louis  MO
-```
-
-Address components are defined in `data-raw`:
-
-- `address_abbreviations` are common groups of address-related words,
-  including official USPS street endings.
-  - Note: The abbreviations table calls `str_collapse_bound()`, to
-    flatten values into a bounded regex,
-    e.g. `\\b(N|S|E|W|NORTH|SOUTH...)\\b`. Vectors call
-    `str_collapse_bound()` by default; regex and character strings will
-    not.
-- `address_regex` defines address components, e.g. `^\\d+\\b` for
-  `street_number`.
-- `address_corrections` is available but not currently in use.
-
-Combine `switch_abbreviation()` with the `address_abbreviations` table
-to alternate between short and long spellings of words. By default, the
-function abbreviates words (`"long-to-short"`).
-
-``` r
-address_out |> 
-  # switch_abbreviation_db(column, type, method = "long-to-short") |> 
-  mutate(post_direction = switch_abbreviation(post_direction, "directions")) |> 
-  mutate(all_street_suffix = switch_abbreviation(all_street_suffix, "official_street_suffix", "short-to-long"))
-#> # A tibble: 4 × 7
-#>   street_number street_number_range pre_direction street_name all_street_suffix
-#>   <chr>         <chr>               <chr>         <chr>       <chr>            
-#> 1 456           <NA>                <NA>          JERSEY      AVENUE           
-#> 2 <NA>          123-125             N             STREET      ROAD             
-#> 3 789           <NA>                <NA>          PIRATE      COVE             
-#> 4 3548          <NA>                <NA>          FIRST       STREET           
-#> # ℹ 2 more variables: post_direction <chr>, unit <chr>
-```
-
-To use your own input and output, use
-`str_replace_names(string, input, output)`.
+If there is a common pattern that is not removed with the function, you
+can use `extract_remove_squish()`, to pre-clean the data.
 
 ``` r
 address_table |> 
-  mutate(state_name = str_replace_names(state, state.abb, state.name)) |>
-  select(city, state, state_name)
-#> # A tibble: 4 × 3
-#>   city       state state_name
-#>   <chr>      <chr> <chr>     
-#> 1 Montclair  NJ    New Jersey
-#> 2 Cincinnati OH    Ohio      
-#> 3 Memphis    TN    Tennessee 
-#> 4 St. Louis  MO    Missouri
+  add_row(address = "246 S Bend St Unit 530 3 Bedroom", 
+          city = "Princeton", 
+          state = "NJ") |> 
+  extract_remove_squish(address, other, "\\d Bedroom")
+#> # A tibble: 6 × 4
+#>   address                                          city       state other    
+#>   <chr>                                            <chr>      <chr> <chr>    
+#> 1 456 Jersey Avenue #102                           Montclair  NJ    <NA>     
+#> 2 123-125 N Street Rd                              Cincinnati OH    <NA>     
+#> 3 928-928 S Montgomery Ave 1500-1502 1550 Ptree Rd Atlanta    GA    <NA>     
+#> 4 789 Pirate Cv East                               Memphis    TN    <NA>     
+#> 5 3548 1ST ST FL 1                                 St. Louis  MO    <NA>     
+#> 6 246 S Bend St Unit 530                           Princeton  NJ    3 Bedroom
 ```
 
-More to come. Please report issues, suggest/commit changes, open a
-discussion.
+To switch a column from the abbreviated spelling to the long format,
+there are two functions:
+
+- `switch_abbreviation()` for abbreviations included in the
+  `address_abbreviations` dataset: directions, all_street_suffixes,
+  official_street_suffixes, ordinals, unit_types, and special_units
+
+``` r
+cleaned_addresses |> 
+  mutate(
+    post_direction_long = switch_abbreviation(post_direction, "directions", "short-to-long"),
+    street_suffix_short = switch_abbreviation(street_suffix, "official_street_suffixes", "long-to-short"),
+    .keep = "used"
+    )
+#> # A tibble: 9 × 4
+#>   post_direction street_suffix post_direction_long street_suffix_short
+#>   <chr>          <chr>         <chr>               <chr>              
+#> 1 <NA>           AVENUE        <NA>                AVE                
+#> 2 <NA>           STREET ROAD   <NA>                ST RD              
+#> 3 <NA>           STREET ROAD   <NA>                ST RD              
+#> 4 <NA>           AVENUE        <NA>                AVE                
+#> 5 <NA>           ROAD          <NA>                RD                 
+#> 6 <NA>           ROAD          <NA>                RD                 
+#> 7 <NA>           ROAD          <NA>                RD                 
+#> 8 E              COVE          EAST                CV                 
+#> 9 <NA>           STREET        <NA>                ST
+```
+
+- `str_replace_names()` to replace any vector with another vector of the
+  same length
+
+``` r
+address_table |> 
+  mutate(state = str_replace_names(state, state.abb, state.name))
+#> # A tibble: 5 × 3
+#>   address                                          city       state     
+#>   <chr>                                            <chr>      <chr>     
+#> 1 456 Jersey Avenue #102                           Montclair  New Jersey
+#> 2 123-125 N Street Rd                              Cincinnati Ohio      
+#> 3 928-928 S Montgomery Ave 1500-1502 1550 Ptree Rd Atlanta    Georgia   
+#> 4 789 Pirate Cv East                               Memphis    Tennessee 
+#> 5 3548 1ST ST FL 1                                 St. Louis  Missouri
+```

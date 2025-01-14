@@ -15,6 +15,8 @@ check_unit(
 )
 }
 \arguments{
+\item{.data}{A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).}
+
 \item{unit}{The unit number or letter}
 
 \item{unit_type}{The type of unit (apt, #, etc)}
