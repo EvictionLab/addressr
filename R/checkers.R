@@ -58,7 +58,7 @@ check_pattern <- function(pattern) {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long)))
     letter_unit <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W")])
 
-    pat <- paste0("(?<!^)(-\\W)?(", pat, ".*$|\\b\\d+(\\W)?\\w$|", letter_unit, "((\\W)+?\\d)?$|\\d+$|\\bCOTTAGE$)")
+    pat <- paste0("(?<!^)\\W*(", pat, ".*$|\\b\\d+(\\W)?\\w$|", letter_unit, "((\\W)+?\\d)?$|\\d+$|\\bCOTTAGE$|#.*$)")
   }
 
   if (pattern == "unit_db") {
@@ -213,7 +213,14 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
 }
 
-check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
+#' Check the unit
+#' @param unit The unit number or letter
+#' @param unit_type The type of unit (apt, #, etc)
+#' @param street_number The street number (<123> N Main St)
+#' @param street_suffix The street suffix (123 N Main <St>)
+#' @param building The building number or letter
+#' @param addressr_id Unique row_id
+check_unit <- function(.data, unit, unit_type, street_number, street_suffix, building, addressr_id) {
 
   df_unit <- .data |> filter(!is.na({{ unit }}))
 
@@ -221,11 +228,28 @@ check_unit <- function(.data, unit, street_number, street_suffix, addressr_id) {
 
   if (nrow(df_unit) != 0) {
 
+    unit_number <- sym("unit_number")
+    unit_text <- sym("unit_text")
+    extra_unit <- sym("extra_unit")
+
+    #' 1. remove all non-word characters
+    #' 2. extract numerics, compare with street number
+    #' 4. if a unit contains text that is more than 2 characters, put it in "extra_unit" to fix later
+    #' 3. extract words, compare with street suffix & building
+    #' 5. combine unit_number and unit_text
     df_unit <- df_unit |>
+      extract_remove_squish({{ unit }}, "unit_number", "\\d+") |>
+      extract_remove_squish({{ unit }}, "extra_unit", "([A-Z]{2,}\\W?)+") |>
+      extract_remove_squish({{ unit }}, "unit_text", "[A-Z]{1}") |>
       mutate(
-        {{ unit }} := str_remove_all(unit, "\\W"),
-        {{ unit }} := if_else(!is.na({{ street_number }}) & ({{ unit }} == {{ street_number }} | {{ unit }} == {{ street_suffix }}), NA_character_, {{ unit }})
-        )
+        {{ unit_number }} := str_remove({{ unit_number }}, "^0+"),
+        {{ unit_number }} := if_else(((!is.na({{ street_number }}) & {{ unit_number }} == {{ street_number }}) | unit_number == ""), NA_character_, {{ unit_number }}),
+        {{ unit_text }} := if_else(((!is.na({{ street_suffix }}) & {{ unit_text }} == {{ street_suffix }}) | (!is.na({{ building }}) & {{ unit_text }} == {{ building }})), NA_character_, {{ unit_text }}),
+        {{ extra_unit }} := if_else((!is.na({{ unit_type }}) & {{ unit_text }} == {{ unit_type }}), NA_character_, extra_unit)
+      ) |>
+      unite(extra_unit, c(unit, extra_unit), sep = "", na.rm = TRUE) |>
+      unite(unit, c(unit_number, unit_text), sep = "", na.rm = TRUE) |>
+      mutate(extra_unit := na_if(extra_unit, ""))
 
     df <- bind_rows(df, df_unit)
 

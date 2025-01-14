@@ -15,6 +15,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
   clean_address <- sym("clean_address")
   raw_address <- sym("raw_address")
   unit <- sym("unit")
+  unit_type <- sym("unit_type")
   street_number <- sym("street_number")
   street_number_range <- sym("street_number_range")
   street_number_multi <- sym("street_number_multi")
@@ -118,6 +119,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
       extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
+      extract_remove_squish({{ unit }}, "special_unit_2", "special_unit") |>
       extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
@@ -146,8 +148,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
     # check units
     tic("check units")
     df <- df |>
-      check_unit(unit, street_number, street_suffix, addressr_id) |>
-      unite({{ unit }}, c("unit", "special_unit"), sep = " ", na.rm = TRUE) |>
+      check_unit(unit, unit_type, street_number, street_suffix, building, addressr_id) |>
+      unite({{ unit }}, c("unit", "special_unit", "special_unit_2"), sep = " ", na.rm = TRUE) |>
       mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
     toc()
 
