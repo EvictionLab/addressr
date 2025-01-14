@@ -269,7 +269,9 @@ check_building <- function(.data, street_number, street_number_multi, building, 
 
   if (nrow(df_bldg) != 0) {
 
-    df_bldg <- df_bldg |> extract_remove_squish({{ building }}, "street_number", "\\d+")
+    df_bldg <- df_bldg |>
+      extract_remove_squish({{ building }}, "street_number", "\\d+") |>
+      mutate({{ street_number }} := str_remove({{ street_number }}, "^0+"))
 
     df <- bind_rows(df, df_bldg)
 
