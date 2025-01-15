@@ -11,7 +11,7 @@ clean_address(.data, input_column, dataset = "default")
 
 \item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
 
-\item{dataset}{The dataset to clean. Currently "lexis" is only available.}
+\item{dataset}{The dataset to clean. Either "default", "quick", or "default_db"}
 }
 \value{
 An object of the same type as .data, with the following properties:

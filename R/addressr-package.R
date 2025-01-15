@@ -2,9 +2,9 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @import rlang dplyr stringr
+#' @import rlang dplyr tidyr stringr
 #' @importFrom glue glue
 #' @importFrom purrr map2
-#' @importFrom tidyr separate_wider_delim unite
+#' @importFrom tictoc tic toc
 ## usethis namespace: end
 NULL
