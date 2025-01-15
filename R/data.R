@@ -10,17 +10,3 @@
 #'  \item{type}{Category of the abbreviation}
 #' }
 "address_abbreviations"
-
-#' Address corrections
-#'
-#' Corrections to address errors
-#'
-#' @format ## `address_corrections`
-#' A dataframe with 17 rows and 4 columns:
-#' \describe{
-#'   \item{input}{The original string found in the data}
-#'   \item{output}{The string to output}
-#'   \item{city}{The city/place for the correction}
-#'   \item{state}{The state for the correction}
-#' }
-"address_corrections"
