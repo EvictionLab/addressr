@@ -4,7 +4,7 @@
 #' `address_regex`: A single string of regex
 #'
 
-## a list of all letters excluding N, S, E, W, and O
+## a list of all letters excluding N, S, E, W, and O (O'Reily, etc)
 # letter_no_NSEWO <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W", "O")])
 
 # main address reference

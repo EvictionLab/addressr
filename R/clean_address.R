@@ -99,7 +99,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     }
     toc()
 
-    # step 2.5: find PO Boxes (maybe add other weird addresses here)
+    # step 2.5: find PO Boxes (maybe add other weird addresses here (highways, 13 colony mall))
     tic("extract address parts")
     df_box <- df |>
       extract_remove_squish({{ input_column }}, "po_box", "po_box") |>

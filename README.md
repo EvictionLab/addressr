@@ -48,23 +48,23 @@ library(addressr)
 library(dplyr)
 
 cleaned_addresses <- address_table |> clean_address(address)
-#> preserve original data: 0.01 sec elapsed
-#> separate multiple addresses: 0.01 sec elapsed
-#> extract address parts: 0.012 sec elapsed
-#> standardize street suffix, directions & ordinals: 0.023 sec elapsed
-#> check street ranges: 0.014 sec elapsed
-#> check units: 0.009 sec elapsed
+#> preserve original data: 0.008 sec elapsed
+#> separate multiple addresses: 0.008 sec elapsed
+#> extract address parts: 0.01 sec elapsed
+#> standardize street suffix, directions & ordinals: 0.019 sec elapsed
+#> check street ranges: 0.011 sec elapsed
+#> check units: 0.007 sec elapsed
 #> check buildings: 0.001 sec elapsed
-#> tidy output: 0.007 sec elapsed
-#> total clean time: 0.088 sec elapsed
+#> tidy output: 0.006 sec elapsed
+#> total clean time: 0.071 sec elapsed
 
 cleaned_addresses |> janitor::remove_empty("cols")
 #> # A tibble: 9 × 13
 #>   raw_address  original_row_id addressr_id clean_address street_name city  state
 #>   <chr>                  <int> <chr>       <chr>         <chr>       <chr> <chr>
 #> 1 456 Jersey …               1 1           456 JERSEY A… JERSEY      Mont… NJ   
-#> 2 123-125 N S…               2 2-N1        123 N STREET… N           Cinc… OH   
-#> 3 123-125 N S…               2 2-N2        125 N STREET… N           Cinc… OH   
+#> 2 123-125 N S…               2 2-N1        123 N STREET… STREET      Cinc… OH   
+#> 3 123-125 N S…               2 2-N2        125 N STREET… STREET      Cinc… OH   
 #> 4 928-928 S M…               3 3-A1        928 S MONTGO… MONTGOMERY  Atla… GA   
 #> 5 928-928 S M…               3 3-A2-N1     1500 PEACHTR… PEACHTREE   Atla… GA   
 #> 6 928-928 S M…               3 3-A2-N2     1502 PEACHTR… PEACHTREE   Atla… GA   
@@ -100,7 +100,13 @@ there are two functions:
 
 - `switch_abbreviation()` for abbreviations included in the
   `address_abbreviations` dataset: directions, all_street_suffixes,
-  official_street_suffixes, ordinals, unit_types, and special_units
+  official_street_suffixes, ordinals, unit_types, and special_units.
+  - `all_street_suffixes` has a one-to-many relationship and should only
+    be used `long-to-short` to standardize spellings into the same
+    official abbreviation (AV, AVE, AVN to AVE)
+  - `official_street_suffixes` has a one-to-one relationship between
+    short and long spellings. It can be used either `short-to-long` or
+    `long-to-short` (assuming all endings are in the official format).
 
 ``` r
 cleaned_addresses |> 
@@ -113,8 +119,8 @@ cleaned_addresses |>
 #>   post_direction street_suffix post_direction_long street_suffix_short
 #>   <chr>          <chr>         <chr>               <chr>              
 #> 1 <NA>           AVENUE        <NA>                AVE                
-#> 2 <NA>           STREET ROAD   <NA>                ST RD              
-#> 3 <NA>           STREET ROAD   <NA>                ST RD              
+#> 2 <NA>           ROAD          <NA>                RD                 
+#> 3 <NA>           ROAD          <NA>                RD                 
 #> 4 <NA>           AVENUE        <NA>                AVE                
 #> 5 <NA>           ROAD          <NA>                RD                 
 #> 6 <NA>           ROAD          <NA>                RD                 
