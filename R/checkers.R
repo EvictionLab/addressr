@@ -42,12 +42,6 @@ check_pattern <- function(pattern) {
     pat <- paste0(pat, "$")
   }
 
-  # address parts that appear at the end
-  if (pattern %in% c("special_unit")) {
-    pat <- str_collapse_bound(unique(c(special_units$short, special_units$long)))
-    pat <- paste0(pat, "$")
-  }
-
   if (pattern == "unit_type") {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long, "COTTAGE$")))
   }

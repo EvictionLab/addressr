@@ -18,6 +18,7 @@ address_regex <- tribble(
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
   "po_box", "(P( )?O )?BOX \\w+",
   "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
+  "special_units_regex", "\\b((UP+[ER]+|LO*WE*R|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S[OUTH]+|E[AST]+|W[EST]+)*$"
 )
 
 special_street_names <- tribble(
@@ -254,17 +255,6 @@ unit_types <- tribble(
 # Special Units
 special_units <- tribble(
   ~short, ~long,
-  "UPPR FRONT", "UPPER FRONT",
-  "UPPER/FRONT", "UPPER FRONT",
-  "FRNT UPPER", "UPPER FRONT",
-  "UPPR REAR", "UPPER REAR",
-  "LOWER/FRONT", "LOWER FRONT",
-  "LOWR FRONT", "LOWER FRONT",
-  "FRNT LOWER", "LOWER FRONT",
-  "LOWER/REAR", "LOWER REAR",
-  "LOWR REAR", "LOWER REAR",
-  "LOWER BACK", "LOWER REAR",
-  "LOWR BACK", "LOWER REAR",
   "UPPR", "UPPER",
   "LOWR", "LOWER",
   "LWR", "LOWER",

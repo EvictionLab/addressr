@@ -44,7 +44,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
       extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
-      extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
+      extract_remove_squish({{ input_column }}, "special_unit", "special_unit_regex") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "street_suffix", "all_street_suffix") |>
@@ -122,8 +122,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
       extract_remove_squish({{ input_column }}, "unit", "unit") |>
       extract_remove_squish({{ unit }}, "unit_type", "unit_type") |>
-      extract_remove_squish({{ unit }}, "special_unit_2", "special_unit") |>
-      extract_remove_squish({{ input_column }}, "special_unit", "special_unit") |>
+      extract_remove_squish({{ unit }}, "special_unit_2", "special_units_regex") |>
+      extract_remove_squish({{ input_column }}, "special_unit", "special_units_regex") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*")) |>
@@ -155,7 +155,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- df |>
       check_unit(unit, unit_type, street_number, street_suffix, building, addressr_id) |>
       unite({{ unit }}, c("unit", "special_unit", "special_unit_2"), sep = " ", na.rm = TRUE) |>
-      mutate({{ unit }} := str_squish({{ unit }}) |> na_if(""))
+      mutate({{ unit }} := switch_abbreviation({{ unit }}, "special_units", "short-to-long"),
+             {{ unit }} := str_squish({{ unit }}) |> na_if(""))
     toc()
 
     # check for missing street numbers in building column
