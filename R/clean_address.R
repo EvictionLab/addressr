@@ -80,8 +80,10 @@ clean_address <- function(.data, input_column, dataset = "default") {
     # current logic to delim: (etc + street suffix) + [punctuation, and, or space] + (numbers + etc + street suffix)
     all_suffix_regex <- str_collapse_bound(unique(c(all_street_suffixes$long, all_street_suffixes$short)))
     longer_regex <- paste0("(?<=", all_suffix_regex, ")\\s*([:punct:]| AND |\\s)\\s*(?=\\d+\\b.+", all_suffix_regex, ")")
+    # second logic to delim: (numbers + word 4-20 letters) + [punctuation, and, or space] + (numbers + same word)
+    longer_regex_2 <- "(?<=\\d (\\w{4,20}))\\s*([:punct:]| AND |\\s)\\s*(?=\\d+(\\W\\d+)? \\1)"
 
-    df_multi <- df |> filter(str_detect({{ input_column }}, longer_regex))
+    df_multi <- df |> filter(str_detect({{ input_column }}, longer_regex) | str_detect({{ input_column }}, longer_regex_2))
     df <- df |> anti_join(df_multi, by = "addressr_id")
 
     if (nrow(df_multi) != 0) {
@@ -89,6 +91,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
       df_multi <- df_multi |>
         separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex)) |>
+        separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex_2)) |>
         distinct() |>
         mutate({{ addressr_addr_id }} := row_number(), .by = "addressr_id") |>
         unite({{ addressr_id }}, c("addressr_id", "addressr_addr_id"), sep = "-A", remove = FALSE) |>

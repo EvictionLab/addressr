@@ -12,6 +12,7 @@ test_data <- tribble(
   "1406 W Whitten W Unit Upper",
   "1427 S 89st St Upper East",
   "700-706 700-706 S 10th St 935-937 W Pierce St",
+  "1234 Main 540-44 Main",
   "123 East Main St 123-A",
   "123 East Main St 123",
   "123 East Main St A",
