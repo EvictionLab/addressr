@@ -2,6 +2,8 @@
 
 test_data <- tribble(
   ~address,
+  "123 and 127 East Main St 123-A",
+  "123-127 East Main St 123-A",
   "123 and 125 East Main St 123-A",
   "123 and 25 East Main St 123-A",
   "2505-11-19 N Summer Ave",
