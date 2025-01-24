@@ -109,11 +109,7 @@ prep_address <- function(string) {
     str_remove_all("\\.") |>
     str_replace_all(c(
       "," = " ",
-      "(\\d+)([A-Z]{2,})" = "\\1 \\2"
+      "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2"
       )) |>
     str_squish()
-  x <- x |>
-    str_replace_all(
-      "(\\d+)\\s?([RSTNDH]{2}|[A-Z][RSTNDH]|[RSTNDH][A-Z])\\b", "\\1\\2"
-    )
 }
