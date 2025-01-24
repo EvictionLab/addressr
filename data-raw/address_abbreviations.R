@@ -11,7 +11,7 @@
 address_regex <- tribble(
   ~address_part, ~regex,
   "street_number", "^\\d+\\b",
-  "street_number_multi", "^(\\d+\\b(\\W|AND)+)+(?! [STNDRH]{2})",
+  "street_number_multi", "^(\\d+\\b(\\W|AND|OR)+)+(?! [STNDRH]{2})",
   "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
   "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
   "street_number_fraction", "[1-9]/\\d\\b",

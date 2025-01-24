@@ -140,11 +140,15 @@ clean_address <- function(.data, input_column, dataset = "default") {
     tic("standardize street suffix, directions & ordinals")
 
     df <- df |>
+      # ordinals
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinals", "short-to-long")) |>
+      # street number coords
+      mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
+      # street suffixes
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>
-      mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
       extract_remove_squish({{ street_suffix }}, "street_suffix_2", str_glue("^({uncommon_suffix_regex} *)+")) |>
+      # directions
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")),
              {{ post_direction }} := if_else((!is.na({{ pre_direction }}) & {{ post_direction }} == {{ pre_direction }}), NA_character_, {{ post_direction }}))
     toc()

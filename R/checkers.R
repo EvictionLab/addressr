@@ -91,8 +91,8 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
     df_ranges <- df_ranges |>
       mutate(
-        street_number_and = str_extract(street_number_multi, "AND|&|,"),
-        street_number_multi = str_replace_all(street_number_multi, "\\W|AND", " ") |> str_squish(),
+        street_number_and = str_extract(street_number_multi, "AND|&|,|OR"),
+        street_number_multi = str_replace_all(street_number_multi, "\\W|AND|OR", " ") |> str_squish(),
         street_number_first = str_extract(street_number_multi, "^\\d+\\b")
         ) |>
       separate_longer_delim(street_number_multi, delim = " ") |>
