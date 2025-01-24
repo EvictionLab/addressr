@@ -108,10 +108,19 @@ prep_address <- function(string) {
     str_to_upper() |>
     str_replace_all(c(
       "(?<!\\d),(?! \\d)" = " ",
+      "\\bN\\W?A\\b" = " ",
+      "&AMP;" = "&",
       "(\\w)\\.(\\w)" = "\\1 \\2",
       "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2",
       "(\\d)\\s?([SNRT][TDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1\\2 \\3"
       )) |>
     str_remove_all("\\.") |>
     str_squish()
+}
+
+replace_ordinals <- function(string) {
+
+  number <- as.numeric(str_extract(string, "\\d+"))
+  str_remove_all(toupper(english::ordinal(number)), "-")
+
 }
