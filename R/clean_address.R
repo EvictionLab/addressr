@@ -17,6 +17,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
   unit <- sym("unit")
   unit_type <- sym("unit_type")
   street_number <- sym("street_number")
+  street_number_coords <- sym("street_number_coords")
   street_number_range <- sym("street_number_range")
   street_number_multi <- sym("street_number_multi")
   all_street_suffix <- sym("all_street_suffix")
@@ -119,6 +120,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     # TODO: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
       extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
+      extract_remove_squish({{ input_column }}, "street_number_coords", "street_number_coords") |>
       extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
@@ -142,6 +144,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ input_column }} := switch_abbreviation({{ input_column }}, "ordinals", "short-to-long")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>
+      mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
       extract_remove_squish({{ street_suffix }}, "street_suffix_2", str_glue("^({uncommon_suffix_regex} *)+")) |>
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")),
              {{ post_direction }} := if_else((!is.na({{ pre_direction }}) & {{ post_direction }} == {{ pre_direction }}), NA_character_, {{ post_direction }}))
@@ -189,7 +192,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       unite({{ street_name }}, c("street_name", "street_suffix_2"), sep = " ", na.rm = TRUE) |>
       mutate({{ street_name }} := str_squish({{ street_name }}) |> na_if("")) |>
       arrange({{ original_row_id }}, {{ addressr_id }}) |>
-      unite("clean_address", c("po_box", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
+      unite("clean_address", c("po_box", "street_number_coords", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
     toc()
 
     toc()
