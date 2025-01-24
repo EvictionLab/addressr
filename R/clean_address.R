@@ -152,23 +152,18 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # check street number ranges
     # see checkers.r for these functions
-    tic("check street ranges")
+    tic("check street numbers, units, and buildings")
     df <- df |> check_street_range(street_number_multi, street_number, addressr_id)
-    toc()
 
     # check units
-    tic("check units")
     df <- df |>
       check_unit(unit, unit_type, street_number, street_suffix, building, addressr_id) |>
       unite({{ unit }}, c("unit", "special_unit", "special_unit_2"), sep = " ", na.rm = TRUE) |>
       mutate({{ unit }} := switch_abbreviation({{ unit }}, "special_units", "short-to-long"),
              {{ unit }} := str_squish({{ unit }}) |> na_if(""))
-    toc()
 
     # check for missing street numbers in building column
-    tic("check buildings")
     df <- df |> check_building(street_number, street_number_multi, building, addressr_id)
-    toc()
 
     df_num <- df |> filter(is.na({{street_number}}) & str_starts({{input_column}}, "\\d+"))
     df <- df |> anti_join(df_num, by = "addressr_id")
@@ -177,6 +172,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
         extract_remove_squish({{input_column}}, "street_number", "^\\d+")
       df <- bind_rows(df, df_num)
     }
+    toc()
 
     # tidy up for output
     tic("tidy output")
