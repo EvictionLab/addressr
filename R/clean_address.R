@@ -116,12 +116,11 @@ clean_address <- function(.data, input_column, dataset = "default") {
     common_suffix_regex <- str_collapse_bound(unique(c(most_common_suffixes$long, most_common_suffixes$short)))
     uncommon_suffix_regex <- str_collapse_bound(unique(c(least_common_suffixes$long, least_common_suffixes$short)))
     pre_direction_regex <- str_collapse_bound(unique(c(directions$long, directions$short)))
-    # extra_regex <- paste0("(?<=(", all_suffix_regex, ")?.*", all_suffix_regex, ").*")
+
     # TODO: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
-      extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
+      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=(\\d+|[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+))") |>
       extract_remove_squish({{ input_column }}, "street_number_coords", "street_number_coords") |>
-      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
       extract_remove_squish({{ input_column }}, "street_number", "street_number") |>
