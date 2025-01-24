@@ -2,6 +2,9 @@
 
 test_data <- tribble(
   ~address,
+  "123 and 127 East Main St 123-A",
+  "1210 1220/2 Main St",
+  "123-127 East Main St 123-A",
   "123 and 125 East Main St 123-A",
   "123 and 25 East Main St 123-A",
   "2505-11-19 N Summer Ave",
@@ -9,6 +12,7 @@ test_data <- tribble(
   "1406 W Whitten W Unit Upper",
   "1427 S 89st St Upper East",
   "700-706 700-706 S 10th St 935-937 W Pierce St",
+  "1234 Main 540-44 Main",
   "123 East Main St 123-A",
   "123 East Main St 123",
   "123 East Main St A",
@@ -30,7 +34,9 @@ test_data <- tribble(
   "P.O. Box 123, Rocky Hill, NJ",
   "123 N Main St",
   "123 N Main St",
+  "1219 and 1321 St Charles St",
   "12 St Charles St",
+  "1202-08 Mt Charles St",
   "12 Mt Charles St",
   "12 Mt Charles Cir #105",
   "12 Street Rd",
