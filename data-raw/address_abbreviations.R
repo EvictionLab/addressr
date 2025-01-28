@@ -106,133 +106,28 @@ least_common_suffixes <- all_street_suffixes |>
   filter(!short %in% common_suffixes & !long %in% common_suffixes)
 
 # Ordinal Number Streets
-ordinals <- tribble(
-  ~short, ~long,
-  "1ST", "FIRST",
-  "2ND", "SECOND",
-  "3RD", "THIRD",
-  "4TH", "FOURTH",
-  "5TH", "FIFTH",
-  "6TH", "SIXTH",
-  "7TH", "SEVENTH",
-  "8TH", "EIGHTH",
-  "9TH", "NINTH",
-  "10TH", "TENTH",
-  "11TH", "ELEVENTH",
-  "12TH", "TWELFTH",
-  "13TH", "THIRTEENTH",
-  "14TH", "FOURTEENTH",
-  "15TH", "FIFTEENTH",
-  "16TH", "SIXTEENTH",
-  "17TH", "SEVENTEENTH",
-  "18TH", "EIGHTEENTH",
-  "19TH", "NINETEENTH",
-  "20TH", "TWENTIETH",
-  "21ST", "TWENTYFIRST",
-  "22ND", "TWENTYSECOND",
-  "23RD", "TWENTYTHIRD",
-  "24TH", "TWENTYFOURTH",
-  "25TH", "TWENTYFIFTH",
-  "26TH", "TWENTYSIXTH",
-  "27TH", "TWENTYSEVENTH",
-  "28TH", "TWENTYEIGHTH",
-  "29TH", "TWENTYNINTH",
-  "30TH", "THIRTIETH",
-  "31ST", "THIRTYFIRST",
-  "32ND", "THIRTYSECOND",
-  "33RD", "THIRTYTHIRD",
-  "34TH", "THIRTYFOURTH",
-  "35TH", "THIRTYFIFTH",
-  "36TH", "THIRTYSIXTH",
-  "37TH", "THIRTYSEVENTH",
-  "38TH", "THIRTYEIGHTH",
-  "39TH", "THIRTYNINTH",
-  "40TH", "FORTIETH",
-  "41ST", "FORTYFIRST",
-  "42ND", "FORTYSECOND",
-  "43RD", "FORTYTHIRD",
-  "44TH", "FORTYFOURTH",
-  "45TH", "FORTYFIFTH",
-  "46TH", "FORTYSIXTH",
-  "47TH", "FORTYSEVENTH",
-  "48TH", "FORTYEIGHTH",
-  "49TH", "FORTYNINTH",
-  "50TH", "FIFTIETH",
-  "51ST", "FIFTYFIRST",
-  "52ND", "FIFTYSECOND",
-  "53RD", "FIFTYTHIRD",
-  "54TH", "FIFTYFOURTH",
-  "55TH", "FIFTYFIFTH",
-  "56TH", "FIFTYSIXTH",
-  "57TH", "FIFTYSEVENTH",
-  "58TH", "FIFTYEIGHTH",
-  "59TH", "FIFTYNINTH",
-  "60TH", "SIXTIETH",
-  "61ST", "SIXTYFIRST",
-  "62ND", "SIXTYSECOND",
-  "63RD", "SIXTYTHIRD",
-  "64TH", "SIXTYFOURTH",
-  "65TH", "SIXTYFIFTH",
-  "66TH", "SIXTYSIXTH",
-  "67TH", "SIXTYSEVENTH",
-  "68TH", "SIXTYEIGHTH",
-  "69TH", "SIXTYNINTH",
-  "70TH", "SEVENTIETH",
-  "71ST", "SEVENTYFIRST",
-  "72ND", "SEVENTYSECOND",
-  "73RD", "SEVENTYTHIRD",
-  "74TH", "SEVENTYFOURTH",
-  "75TH", "SEVENTYFIFTH",
-  "76TH", "SEVENTYSIXTH",
-  "77TH", "SEVENTYSEVENTH",
-  "78TH", "SEVENTYEIGHTH",
-  "79TH", "SEVENTYNINTH",
-  "80TH", "EIGHTIETH",
-  "81ST", "EIGHTYFIRST",
-  "82ND", "EIGHTYSECOND",
-  "83RD", "EIGHTYTHIRD",
-  "84TH", "EIGHTYFOURTH",
-  "85TH", "EIGHTYFIFTH",
-  "86TH", "EIGHTYSIXTH",
-  "87TH", "EIGHTYSEVENTH",
-  "88TH", "EIGHTYEIGHTH",
-  "89TH", "EIGHTYNINTH",
-  "90TH", "NINETIETH",
-  "91ST", "NINETYFIRST",
-  "92ND", "NINETYSECOND",
-  "93RD", "NINETYTHIRD",
-  "94TH", "NINETYFOURTH",
-  "95TH", "NINETYFIFTH",
-  "96TH", "NINETYSIXTH",
-  "97TH", "NINETYSEVENTH",
-  "98TH", "NINETYEIGHTH",
-  "99TH", "NINETYNINTH",
-  "100TH", "ONE HUNDREDTH",
-  "101ST", "ONE HUNDRED FIRST",
-  "102ND", "ONE HUNDRED SECOND",
-  "103RD", "ONE HUNDRED THIRD",
-  "104TH", "ONE HUNDRED FOURTH",
-  "105TH", "ONE HUNDRED FIFTH",
-  "106TH", "ONE HUNDRED SIXTH",
-  "107TH", "ONE HUNDRED SEVENTH",
-  "108TH", "ONE HUNDRED EIGHTH",
-  "109TH", "ONE HUNDRED NINTH",
-  "110TH", "ONE HUNDRED TENTH",
-  "111TH", "ONE HUNDRED ELEVENTH",
-  "112TH", "ONE HUNDRED TWELFTH",
-  "113TH", "ONE HUNDRED THIRTEENTH",
-  "114TH", "ONE HUNDRED FOURTEENTH",
-  "115TH", "ONE HUNDRED FIFTEENTH",
-  "116TH", "ONE HUNDRED SIXTEENTH",
-  "117TH", "ONE HUNDRED SEVENTEENTH",
-  "118TH", "ONE HUNDRED EIGHTEENTH",
-  "119TH", "ONE HUNDRED NINETEENTH",
-  "120TH", "ONE HUNDRED TWENTIETH",
-  "121ST", "ONE HUNDRED TWENTYFIRST",
-  "122ND", "ONE HUNDRED TWENTYSECOND",
-  "123RD", "ONE HUNDRED TWENTYTHIRD",
-  "124TH", "ONE HUNDRED TWENTYFOURTH",
-) |> mutate(type = "ordinals")
+ordinal_suffix <- function(number) {
+  last_digit <- number %% 10
+  last_two_digits <- number %% 100
+
+  if (last_two_digits %in% c(11, 12, 13)) {
+    return("TH")
+  } else if (last_digit == 1) {
+    return("ST")
+  } else if (last_digit == 2) {
+    return("ND")
+  } else if (last_digit == 3) {
+    return("RD")
+  } else {
+    return("TH")
+  }
+}
+
+ordinals <- tibble(
+  number = 1:999,
+  short = paste0(number, sapply(number, ordinal_suffix)),
+  long = str_remove_all(str_to_upper(ordinal(number)), "-")
+)
 
 # Unit Types
 unit_types <- tribble(
@@ -264,7 +159,7 @@ special_units <- tribble(
   "BACK", "BACK",
 ) |> mutate(type = "special_units")
 
-address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units)
+address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units)
 
 addr_abbr <- address_abbreviations
 

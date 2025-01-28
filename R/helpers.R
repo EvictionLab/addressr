@@ -117,10 +117,3 @@ prep_address <- function(string) {
     str_remove_all("\\.") |>
     str_squish()
 }
-
-replace_ordinals <- function(string) {
-
-  number <- as.numeric(str_extract(string, "\\d+"))
-  str_remove_all(toupper(english::ordinal(number)), "-")
-
-}

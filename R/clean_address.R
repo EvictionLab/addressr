@@ -141,7 +141,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     df <- df |>
       # ordinals
-      mutate({{ input_column }} := str_replace_all({{ input_column}}, "\\b\\d{1,3}[SNRT][TDH]\\b", replace_ordinals)) |>
+      mutate({{ input_column }} := str_replace_names({{ input_column}}, ordinals$short, ordinals$long)) |>
       # street number coords
       mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
       # street suffixes
