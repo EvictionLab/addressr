@@ -96,6 +96,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
         street_number_first = str_extract(street_number_multi, "^\\d+\\b")
         ) |>
       separate_longer_delim(street_number_multi, delim = " ") |>
+      extract_remove_squish({{ street_number_multi }}, building, "[A-Z]$") |>
       distinct() |>
       mutate(
         street_number_id = row_number(),
