@@ -16,6 +16,7 @@ test_data <- tribble(
   "123 East 125th St",
   # tricky streets
   "123 N",
+  "123 St",
   "123 East St",
   "123 East # 1",
   "123 W O'Conner Cv",
