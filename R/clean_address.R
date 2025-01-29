@@ -130,7 +130,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "special_unit", "special_units_regex") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
-      extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*")) |>
+      extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*|(?<=^{pre_direction_regex} ){common_suffix_regex}$")) |>
       extract_remove_squish({{ extra_back }}, "street_suffix", str_glue(".*{all_suffix_regex}")) |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction")
 

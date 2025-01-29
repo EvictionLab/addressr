@@ -25,8 +25,8 @@ address_regex <- tribble(
 special_street_names <- tribble(
   ~regex, ~output,
   "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?", "MARTIN LUTHER KING",
-  "^ST", "SAINT",
   "MT", "MOUNT",
+  "^ST(?!$)", "SAINT",
   "P( )?TREE", "PEACHTREE",
   "CONT(L)? C[OL]+NY", "CONTINENTAL COLONY",
   "ATL", "ATLANTA",
