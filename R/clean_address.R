@@ -119,7 +119,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # TODO: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
-      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=(\\d+|[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+))") |>
+      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?!\\d+\\W?[NSEW]\\s?\\d+)") |>
       extract_remove_squish({{ input_column }}, "street_number_coords", "street_number_coords") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
@@ -130,7 +130,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "special_unit", "special_units_regex") |>
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
-      extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*")) |>
+      extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*|(?<=^{pre_direction_regex} ){common_suffix_regex}$")) |>
       extract_remove_squish({{ extra_back }}, "street_suffix", str_glue(".*{all_suffix_regex}")) |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction")
 
@@ -141,7 +141,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     df <- df |>
       # ordinals
-      mutate({{ input_column }} := str_replace_all({{ input_column}}, "\\b\\d{1,3}[SNRT][TDH]\\b", replace_ordinals)) |>
+      mutate({{ input_column }} := str_replace_names({{ input_column}}, ordinals$short, ordinals$long)) |>
       # street number coords
       mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
       # street suffixes

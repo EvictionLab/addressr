@@ -112,15 +112,9 @@ prep_address <- function(string) {
       "&AMP;" = "&",
       "(\\w)\\.(\\w)" = "\\1 \\2",
       "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2",
-      "(\\d)\\s?([SNRT][TDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1\\2 \\3"
+      "(\\d)\\s?([SNRT][TDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1\\2 \\3",
+      "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING"
       )) |>
-    str_remove_all("\\.") |>
+    str_remove_all(c("\\.|'")) |>
     str_squish()
-}
-
-replace_ordinals <- function(string) {
-
-  number <- as.numeric(str_extract(string, "\\d+"))
-  str_remove_all(toupper(english::ordinal(number)), "-")
-
 }
