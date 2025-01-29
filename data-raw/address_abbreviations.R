@@ -17,7 +17,7 @@ address_regex <- tribble(
   "street_number_fraction", "[1-9]/\\d\\b",
   "street_number_coords", "\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+",
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
-  "po_box", "(P( )?O )?BOX \\w+(?!ST|DR|AVE)",
+  "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX \\w+)",
   "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
   "special_units_regex", "\\b((UP+[ER]+|LO*WE*R|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S[OUTH]+|E[AST]+|W[EST]+)*$"
 )
@@ -75,6 +75,7 @@ all_street_suffixes_1 <- street_suffix_raw |>
   filter(short != long) |>
   mutate(type = "all_street_suffixes")
 
+# manual common fixes. short = official abbreviation, long = manual abbr
 all_street_suffixes_2 <- tribble(
   ~short, ~long,
   "BLVD", "B LVD",
@@ -82,12 +83,12 @@ all_street_suffixes_2 <- tribble(
   "BLVD", "BV",
   "BLVD", "BLV",
   "CIR", "CI",
-  "EXPRESSWAY", "EX",
+  "EXPY", "EX",
   "HWY", "HY",
   "LANE", "LA",
   "PKWY", "PY",
-  "TERRACE", "TE",
-  "TRACE", "TR",
+  "TER", "TE",
+  "TRCE", "TR",
   "MHP", "MOBILE HOME PARK",
   "MHP", "MOBILE HOME PK",
   "MHP", "MOBILE HOME DEV",
@@ -126,7 +127,7 @@ ordinal_suffix <- function(number) {
 ordinals <- tibble(
   number = 1:999,
   short = paste0(number, sapply(number, ordinal_suffix)),
-  long = str_remove_all(str_to_upper(ordinal(number)), "-")
+  long = str_remove_all(str_to_upper(english::ordinal(number)), "-")
 )
 
 # Unit Types
