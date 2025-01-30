@@ -118,3 +118,9 @@ prep_address <- function(string) {
     str_remove_all(c("\\.|'")) |>
     str_squish()
 }
+
+replace_ordinals <- function(string) {
+  number <- as.numeric(str_extract(string, "\\d+"))
+  x <- ordinals[ordinals$number == number, "long"]
+  as.character(x)
+}
