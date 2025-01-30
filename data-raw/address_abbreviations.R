@@ -11,7 +11,7 @@
 address_regex <- tribble(
   ~address_part, ~regex,
   "street_number", "^\\d+\\b",
-  "street_number_multi", "^(\\d+\\b(\\W|AND|OR)+)+(?! [STNDRH]{2})",
+  "street_number_multi", "^(\\d+[A-Z]?\\b(\\W|AND|OR)+)+(?! [STNDRH]{2})",
   "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
   "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
   "street_number_fraction", "[1-9]/\\d\\b",
@@ -27,7 +27,8 @@ special_street_names <- tribble(
   # "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?", "MARTIN LUTHER KING",
   "MT", "MOUNT",
   "^ST(?!$)", "SAINT",
-  "^(O) ([A-Z]{3,})", "\\1\\2",
+  "^(O)\\W([A-Z]{3,})", "\\1\\2",
+  "^(MC)\\W([A-Z]{3,})", "\\1\\2",
   "P( )?TREE", "PEACHTREE",
   "CONT(L)? C[OL]+NY", "CONTINENTAL COLONY",
   "ATL", "ATLANTA",

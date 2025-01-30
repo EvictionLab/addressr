@@ -72,8 +72,10 @@ test_data <- tribble(
   "12135, 12215, 12205 & 12221 W Main Ave",
   "12135, 215, 205 & 221 W Main Ave",
   "MATT D DBA EL LLC 12135, 215, 205 & 221 W Main Ave",
+  "1233-1233A-1233B S 15TH St",
   # multi-address: street
   "1234 Main 540-44 Main",
+  "1234 S Main 540-44 S Main",
   "121-125 N Main St. And 187 S Main St",
   "121-125 N Main St / 187-189 S Main St",
   "700-706 700-706 S 10th St 935-937 W Pierce St",
@@ -90,6 +92,7 @@ test_data <- tribble(
   "123 N Main St Apt 2E",
   "123 1st st apt 7B",
   "123 1st st # 7",
+  "123 1st st # 7-9",
   "123 N Main St FLOOR",
   "123 N Main St FL LOWR",
   "123 N Main St LOWER",
