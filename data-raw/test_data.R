@@ -92,6 +92,7 @@ test_data <- tribble(
   "123 N Main St Apt 2E",
   "123 1st st apt 7B",
   "123 1st st # 7",
+  "123 1st st # 7-9",
   "123 N Main St FLOOR",
   "123 N Main St FL LOWR",
   "123 N Main St LOWER",
