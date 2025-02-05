@@ -1,6 +1,6 @@
 ## code to prepare `test_data` dataset goes here
 
-test_data <- tribble(
+test_addresses <- tribble(
   ~address,
   "123 Main St",
   # directions
@@ -21,6 +21,7 @@ test_data <- tribble(
   "123 East # 1",
   "123 W O'Conner Cv",
   "123 W O Conner Cv",
+  "Box 456 123 N Main",
   "P.O. Box 123, Rocky Hill, NJ",
   "123 Box St",
   "12 St Charles St",
@@ -106,4 +107,4 @@ test_data <- tribble(
   clean_address(address) |>
   janitor::remove_empty("cols")
 
-# usethis::use_data(test_data, overwrite = TRUE)
+usethis::use_data(test_addresses, overwrite = TRUE)

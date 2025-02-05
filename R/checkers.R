@@ -82,6 +82,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
   street_number_first_length <- sym("street_number_first_length")
   street_number_length <- sym("street_number_length")
   street_number_logic <- sym("street_number_logic")
+  building <- sym("building")
 
   df_ranges <- .data |> filter(!is.na(street_number_multi))
 

@@ -10,3 +10,7 @@
 #'  \item{type}{Category of the abbreviation}
 #' }
 "address_abbreviations"
+#' Test address dataset
+#'
+#' Dataset to show how addresses are formatted with addressr.
+"test_addresses"
