@@ -107,6 +107,9 @@ clean_address <- function(.data, input_column, dataset = "default") {
     tic("extract address parts")
     df_box <- df |>
       extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
+      mutate({{ po_box }} := str_replace_all({{ po_box }}, "(P?.*O?.*BOX)\\W(\\w+)", "PO BOX \\2"),
+             {{ extra_back }} := {{ input_column }},
+             {{ input_column }} := NA_character_) |>
       filter(!is.na(po_box))
 
     df <- df |> anti_join(df_box, by = "addressr_id")
