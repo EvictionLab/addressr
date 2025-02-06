@@ -30,6 +30,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
   street_name <- sym("street_name")
   po_box <- sym("po_box")
 
+  v_clean_address <- c("po_box", "street_number_coords", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction")
+
   if (dataset == "quick") {
 
     tic("quick clean address.")
@@ -55,13 +57,15 @@ clean_address <- function(.data, input_column, dataset = "default") {
     df <- df |>
       mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
       rename("street_name" = {{ input_column }}) |>
-      unite("clean_address", c("street_number", "street_number_range", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
+      unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE)
 
     toc()
 
+    df
+
   }
 
-  if (dataset == "default") {
+  else if (dataset == "default") {
 
     tic("total clean time")
 
@@ -197,7 +201,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       unite({{ street_name }}, c("street_name", "street_suffix_2"), sep = " ", na.rm = TRUE) |>
       mutate({{ street_name }} := str_squish({{ street_name }}) |> na_if("")) |>
       arrange({{ original_row_id }}, {{ addressr_id }}) |>
-      unite("clean_address", c("po_box", "street_number_coords", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction"), sep = " ", remove = FALSE, na.rm = TRUE)
+      unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE)
     toc()
 
     toc()
