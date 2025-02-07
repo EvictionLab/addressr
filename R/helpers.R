@@ -116,6 +116,8 @@ prep_address <- function(string) {
       "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING"
       )) |>
     str_remove_all(c("\\.|'")) |>
+    str_replace_all("\\b\\d{1,2}(?= MILE)", replace_number) |>
+    str_replace_all("(?<=\\d [NSEW] )\\d{1,3}(?= (ST|AV))", replace_ordinals) |>
     str_squish()
 }
 
