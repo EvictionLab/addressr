@@ -150,6 +150,7 @@ unit_types <- tribble(
   "UNIT", "UNIT",
   "STE", "SUITE",
   "FL", "FLOOR",
+  "FLT", "FLAT",
   "BLDG", "BUILDING",
   "RM", "ROOM",
   "PH", "PENTHOUSE",

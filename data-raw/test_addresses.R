@@ -103,6 +103,8 @@ test_addresses <- tribble(
   "123 N Main St FLOOR",
   "123 N Main St FL LOWR",
   "123 N Main St LOWER",
+  "123 N Main St LOWER FLAT",
+  "123 N Main St LF",
   "123 N Main St UNIT LOWR",
   "123 N Main St LOWR UNIT",
   "123 N Main St DEPT 2",
