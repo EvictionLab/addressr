@@ -80,6 +80,17 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ input_column }} := prep_address({{ input_column }}))
     toc()
 
+    # step 1.5: change fractional street names
+    regex_frac <- check_pattern("street_name_fraction")
+    df_frac <- df |> filter(str_detect({{ input_column }}, regex_frac))
+    df <- df |> anti_join(df_frac, by = "addressr_id")
+
+    if (nrow(df_frac) != 0) {
+      df_frac <- df_frac |>
+        mutate({{ input_column }} := str_replace_all({{ input_column }}, regex_frac, replace_fraction))
+      df <- bind_rows(df, df_frac)
+    }
+
     # step 2: separate out multiple addresses
     tic("separate multiple addresses")
     # current logic to delim: (etc + street suffix) + [punctuation, and, or space] + (numbers + etc + street suffix)
@@ -138,7 +149,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*|(?<=^{pre_direction_regex} ){common_suffix_regex}$")) |>
-      extract_remove_squish({{ extra_back }}, "street_suffix", str_glue(".*{all_suffix_regex}")) |>
+      extract_remove_squish({{ extra_back }}, "street_suffix", str_glue("({all_suffix_regex} )?{all_suffix_regex}")) |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction")
 
     toc()
@@ -158,6 +169,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>
       extract_remove_squish({{ street_suffix }}, "street_suffix_2", str_glue("^({uncommon_suffix_regex} *)+")) |>
+      mutate({{ street_suffix }} := str_replace({{ street_suffix }}, str_glue("({common_suffix_regex}) \\1"), "\\1")) |>
       # directions
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")),
              {{ post_direction }} := if_else((!is.na({{ pre_direction }}) & {{ post_direction }} == {{ pre_direction }}), NA_character_, {{ post_direction }}))

@@ -15,6 +15,7 @@ address_regex <- tribble(
   "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
   "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
   "street_number_fraction", "[1-9]/\\d\\b",
+  "street_name_fraction", "(?<=\\d )\\d{1,2} \\d{1,2}[ /]\\d{1,2}(THS)?(?= (ST|AV|MILE))",
   "street_number_coords", "\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+",
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
   "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX \\w+)",
@@ -130,8 +131,17 @@ ordinal_suffix <- function(number) {
 ordinals <- tibble(
   number = 1:999,
   short = paste0(number, sapply(number, ordinal_suffix)),
-  long = str_remove_all(str_to_upper(english::ordinal(number)), "-")
+  long = str_remove_all(str_to_upper(english::ordinal(number)), "-"),
+  long_number = str_remove_all(str_to_upper(english::english(number)), "-")
 )
+
+fractions <- tribble(
+  ~short, ~long,
+  "2", "HALF",
+  "4", "FOURTHS",
+  "8", "EIGHTHS",
+  "16", "SIXTEENTHS",
+) |> mutate(type = "fractions")
 
 # Unit Types
 unit_types <- tribble(
@@ -140,6 +150,7 @@ unit_types <- tribble(
   "UNIT", "UNIT",
   "STE", "SUITE",
   "FL", "FLOOR",
+  "FLT", "FLAT",
   "BLDG", "BUILDING",
   "RM", "ROOM",
   "PH", "PENTHOUSE",
@@ -169,4 +180,4 @@ addr_abbr <- address_abbreviations
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)
 
-usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
+usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
