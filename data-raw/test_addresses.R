@@ -43,6 +43,7 @@ test_addresses <- tribble(
   "123 E Parkway W",
   "123 Cottage St",
   "12-14 Street Rd",
+  "12-14 Street Rd Road",
   "12 Street Rd",
   "12 Street LN",
   "12 Street SQ",

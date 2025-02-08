@@ -149,7 +149,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*|(?<=^{pre_direction_regex} ){common_suffix_regex}$")) |>
-      extract_remove_squish({{ extra_back }}, "street_suffix", str_glue(".*{all_suffix_regex}")) |>
+      extract_remove_squish({{ extra_back }}, "street_suffix", str_glue("({all_suffix_regex} )?{all_suffix_regex}")) |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction")
 
     toc()
@@ -169,6 +169,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>
       extract_remove_squish({{ street_suffix }}, "street_suffix_2", str_glue("^({uncommon_suffix_regex} *)+")) |>
+      mutate({{ street_suffix }} := str_replace({{ street_suffix }}, str_glue("({common_suffix_regex}) \\1"), "\\1")) |>
       # directions
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")),
              {{ post_direction }} := if_else((!is.na({{ pre_direction }}) & {{ post_direction }} == {{ pre_direction }}), NA_character_, {{ post_direction }}))
