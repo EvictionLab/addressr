@@ -15,11 +15,15 @@ test_addresses <- tribble(
   "123 East 91 stplace",
   "123 East 125th St",
   "123 N 34 St",
+  "123 3 3 4 4th St",
   "123 16 3 4ths Av",
+  "123 16 THREE FOURTHS Av",
   "123 22 1 2 St",
   "123 22 1/2 St",
+  "123 22 1 8th Ave #101",
   "123 8 Mile Rd",
-  # tricky streets
+  "123 8 1/2 Mile Rd",
+  # other tricky streets
   "123 N",
   "123 St",
   "123 East St",

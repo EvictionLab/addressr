@@ -15,7 +15,7 @@ address_regex <- tribble(
   "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
   "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
   "street_number_fraction", "[1-9]/\\d\\b",
-  "street_name_fraction", "(?<=\\d )\\d{1,2} \\d{1,2}[ /]\\d{1,2}(THS)?(?= (ST|AV|MILE))",
+  "street_name_fraction", "(?<=\\d )\\d{1,2} (\\d{1,2}|(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN))[ /](\\d{1,2}(THS?)?|(HALF|FOURTH|EIGHTH|SIXTEENTH)S?)(?= (\\d{1,3}[SNRT][TDH] )?(ST|AV|MILE))",
   "street_number_coords", "\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+",
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
   "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX \\w+)",

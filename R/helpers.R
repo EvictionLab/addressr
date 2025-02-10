@@ -116,8 +116,8 @@ prep_address <- function(string) {
       "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING"
       )) |>
     str_remove_all(c("\\.|'")) |>
-    str_replace_all("\\b\\d{1,2}(?= MILE)", replace_number) |>
-    str_replace_all("(?<=\\d [NSEW] )\\d{1,3}(?= (ST|AV))", replace_ordinals) |>
+    str_replace_all("(?<!/)\\b\\d{1,2}(?= MILE)", replace_number) |>
+    str_replace_all("(?<=\\d[A-Z]? [NSEW] )\\d{1,3}(?= (ST|AV))", replace_ordinals) |>
     str_squish()
 }
 
@@ -128,18 +128,28 @@ replace_ordinals <- function(string) {
 }
 
 replace_number <- function(string) {
-  number <- as.numeric(str_extract(string, "\\d+"))
-  x <- ordinals[ordinals$number == number, "long_number"]
-  as.character(x)
+  if (str_detect(string, "\\d")) {
+    number <- as.numeric(str_extract(string, "\\d+"))
+    x <- ordinals[ordinals$number == number, "long_number"]
+    x <- as.character(x)
+  } else {
+    x <- string
+  }
+  x
 }
 
 replace_fraction <- function(string) {
   num_1 <- str_extract(string, "^\\d+")
   num_1 <- replace_number(num_1)
-  num_2 <- str_extract(string, " \\d+[\\s/]")
+  num_2 <- str_extract(string, " (\\d+|\\w+)[\\s/]")
   num_2 <- replace_number(num_2)
-  num_3 <- str_extract(string, "\\d+(?=(THS)?$)")
-  num_3 <- fractions[fractions$short == num_3, "long"]
+  num_3 <- str_extract(string, "(\\d+|HALF|FOUR|EIGH|SIXTEEN)(?=(THS?)?$)")
+
+  if (str_detect(num_3, "\\d")) {
+    num_3 <- fractions[fractions$short == num_3, "long"]
+  } else if (num_3 %in% c("FOUR", "EIGH", "SIXTEEN")) {
+    num_3 <- paste0(num_3, "THS")
+  }
 
   paste(num_1, "AND", num_2, num_3)
 }
