@@ -112,6 +112,7 @@ prep_address <- function(string) {
       "&AMP;" = "&",
       "(\\w)\\.(\\w)" = "\\1 \\2",
       "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2",
+      "(\\d) (ST) (RD|ROAD) #? ?(\\d{2})" = "\\1 STATE \\3 \\4",
       "(\\d)\\s?([SNRT][TDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1\\2 \\3",
       "(\\d)\\s?([RTDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1TH \\3",
       "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING",
