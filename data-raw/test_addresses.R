@@ -16,6 +16,7 @@ test_addresses <- tribble(
   "123 East 91 stplace",
   "123 East 125th St",
   "123 N 34 St",
+  "123A N 34 St",
   "123 3 3 4 4th St",
   "123 16 3 4ths Av",
   "123 16 THREE FOURTHS Av",
@@ -92,6 +93,7 @@ test_addresses <- tribble(
   "121-125 N Main St / 187-189 S Main St",
   "700-706 700-706 S 10th St 935-937 W Pierce St",
   # units & buildings
+  "123 1B 15th St",
   "123A Main Street South",
   "123 A Main Street South",
   "123 East Main St 123-A",
