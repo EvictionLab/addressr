@@ -28,6 +28,8 @@ test_addresses <- tribble(
   "123 8 Mile Rd",
   "123 8 1/2 Mile Rd",
   # other tricky streets
+  "W1234 HWY 10",
+  "W1234 HWY 10 and 11",
   "123 N",
   "123 St",
   "123 East St",

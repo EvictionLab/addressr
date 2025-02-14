@@ -91,6 +91,21 @@ clean_address <- function(.data, input_column, dataset = "default") {
       df <- bind_rows(df, df_frac)
     }
 
+    regex_hwy <- paste0(str_collapse_bound(unique(highways$short, highways$long)), " (\\d{2,3}|[A-Z]{1,2})\\b")
+
+    df_hwy <- df |> filter(str_detect({{ input_column }}, regex_hwy))
+    df <- df |> anti_join(df_hwy, by = "addressr_id")
+
+    if (nrow(df_hwy) != 0) {
+      df_hwy <- df_hwy |>
+        mutate(
+          {{ input_column }} := str_replace_names({{ input_column }}, highways$short, highways$long),
+          {{ input_column }} := str_replace_all({{ input_column }}, "(?<=HIGHWAY \\d{2,3} (AND|&) )\\d{2,3}", replace_number),
+          {{ input_column }} := str_replace_all({{ input_column }}, "(?<=HIGHWAY )\\d{2,3}", replace_number)
+          )
+      df <- bind_rows(df, df_hwy)
+    }
+
     # step 2: separate out multiple addresses
     tic("separate multiple addresses")
     # current logic to delim: (etc + street suffix) + [punctuation, and, or space] + (numbers + etc + street suffix)

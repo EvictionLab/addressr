@@ -174,10 +174,22 @@ special_units <- tribble(
   "BACK", "BACK",
 ) |> mutate(type = "special_units")
 
-address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units)
+highways <- tribble(
+  ~short, ~long,
+  "(COUNTY|CNTY|CTY|CO) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRK)", "COUNTY HIGHWAY",
+  "COUNTY", "COUNTY HIGHWAY",
+  "CTHY?", "COUNTY HIGHWAY",
+  "CTY", "COUNTY HIGHWAY",
+  "CO", "COUNTY HIGHWAY",
+  "HIGHWAY", "HIGHWAY",
+  "HWY", "HIGHWAY",
+  "HY", "HIGHWAY",
+) |> mutate(type = "highways")
+
+address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units, highways)
 
 addr_abbr <- address_abbreviations
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)
 
-usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
+usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, highways, overwrite = TRUE, internal = TRUE)
