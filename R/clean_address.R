@@ -157,6 +157,11 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     tic("standardize street suffix, directions & ordinals")
 
+    replace_coords <- c(
+      "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)" = "\\1\\2 \\3\\4",
+      "^(\\d{3})\\s?([NSEW])\\s?(\\d+)" = "\\1 \\2\\3"
+    )
+
     df <- df |>
       # ordinals
       mutate(
@@ -164,7 +169,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
         {{ input_column }} := str_replace_all({{ input_column }}, "\\b\\d{1,3}[RSTN][DTH]\\b", replace_ordinals)
         ) |>
       # street number coords
-      mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
+      mutate({{ street_number_coords }} := str_replace_all({{ street_number_coords }}, replace_coords)) |>
       # street suffixes
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>

@@ -10,6 +10,7 @@ test_addresses <- tribble(
   "1406 W Whitten W Unit Upper",
   # ordinals & other numerical street names
   "123 97h St",
+  "123 Raven Dr",
   "123 East 97th St",
   "123 East 91 st St",
   "123 East 91stplace",
@@ -57,6 +58,8 @@ test_addresses <- tribble(
   "12 Street SQ",
   # coord street number
   "W123 N9753 Belvedere Ave",
+  "E9753A Main Ave",
+  "123E9753 Main Ave",
   "N123-E9753 Main Ave",
   "N123-E9753 Main Ave Apt 1220",
   "S123W9753 Main Ave",

@@ -113,10 +113,11 @@ prep_address <- function(string) {
       "(\\w)\\.(\\w)" = "\\1 \\2",
       "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2",
       "(\\d) (ST) (RD|ROAD) #? ?(\\d{2})" = "\\1 STATE \\3 \\4",
-      "(\\d)\\s?([SNRT][TDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1\\2 \\3",
-      "(\\d)\\s?([RTDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1TH \\3",
+      "(\\d)\\s?([SNRT][TDH])\\s?(ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1\\2 \\3",
+      "(\\d)([RTDH]|T{1,2}H{1,2})\\s(ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1TH \\3",
       "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING",
-      "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
+      "^([NSEW]\\d{3,})([A-Z] )(.*)" = "\\1 \\3 \\2",
+      "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d|APT \\w+|APARTMENT \\w+|NUM \\d+|UNIT \\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
       )) |>
     str_remove_all(c("\\.|'")) |>
     str_replace_all("(?<!/)\\b\\d{1,2}(?= MILE)", replace_number) |>
