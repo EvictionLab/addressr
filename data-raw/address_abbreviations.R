@@ -75,7 +75,7 @@ all_street_suffixes_1 <- street_suffix_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
   distinct() |>
   rename(short = 1, long = 2) |>
-  filter(short != long) |>
+  filter(short != long & short != "HWY") |>
   mutate(type = "all_street_suffixes")
 
 # manual common fixes. short = official abbreviation, long = manual abbr
@@ -88,9 +88,10 @@ all_street_suffixes_2 <- tribble(
   "CIR", "CI",
   "CT", "CRT",
   "EXPY", "EX",
-  "HWY", "HY",
+  # "HWY", "HY",
   "LANE", "LA",
   "PKWY", "PY",
+  "PKWY", "PARK WAY",
   "TER", "TE",
   "TRCE", "TR",
   "MHP", "MOBILE HOME PARK",
@@ -176,7 +177,8 @@ special_units <- tribble(
 
 highways <- tribble(
   ~short, ~long,
-  "(COUNTY|CNTY|CTY|CO) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRK)", "COUNTY HIGHWAY",
+  "(STATE) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRK|TK)", "STATE HIGHWAY",
+  "(COUNTY|CNTY|CTY|CO) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRK|TK)", "COUNTY HIGHWAY",
   "COUNTY", "COUNTY HIGHWAY",
   "CTHY?", "COUNTY HIGHWAY",
   "CTY", "COUNTY HIGHWAY",
@@ -184,6 +186,7 @@ highways <- tribble(
   "HIGHWAY", "HIGHWAY",
   "HWY", "HIGHWAY",
   "HY", "HIGHWAY",
+  "US", "HIGHWAY",
 ) |> mutate(type = "highways")
 
 address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units, highways)

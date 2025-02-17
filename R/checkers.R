@@ -52,7 +52,7 @@ check_pattern <- function(pattern) {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long)))
     letter_unit <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W")])
 
-    pat <- paste0("(?<!^)\\W*(", pat, ".*$|\\b\\d+(\\W)?\\w$|", letter_unit, "((\\W)+?\\d)?$|\\b(\\d+(\\s?-\\s?))?\\d+$|\\bCOTTAGE$|(?<=\\b|\\d)[LU][FR]\\b|#.*$)")
+    pat <- paste0("(?<!^)\\W*(", pat, ".*$|\\b\\d+(\\W)?\\w$|(?<!HIGHWAY )", letter_unit, "((\\W)+?\\d)?$|\\b(\\d+(\\s?-\\s?))?\\d+$|\\bCOTTAGE$|(?<=\\b|\\d)[LU][FR]\\b|#.*$)")
   }
 
   if (pattern == "unit_db") {
@@ -280,4 +280,36 @@ check_building <- function(.data, street_number, street_number_multi, building, 
 
   df
 
+}
+
+check_highways <- function(.data, input_column) {
+
+  regex_hwy <- paste0("(", str_collapse_bound(unique(highways$short, highways$long)), " )+(?!(ST|AV|CV|LN|CI|PL|BV|WY))(\\d{2,3}|[A-Z]{1,2})( (AND|&) \\d{2,3})?\\b")
+
+  df_hwy <- .data |> filter(str_detect({{ input_column }}, regex_hwy))
+  df <- .data |> anti_join(df_hwy, by = "addressr_id")
+
+  if (nrow(df_hwy) != 0) {
+    highway <- sym("highway")
+    highway_num <- sym("highway_num")
+
+    df_hwy <- df_hwy |>
+      mutate({{ highway }} := str_extract({{ input_column }}, regex_hwy)) |>
+      extract_remove_squish({{ highway }}, "highway_num", "(\\d{2,3}|[A-Z]{1,2})( (AND|&) \\d{2,3})?$") |>
+      mutate(
+        {{ highway }} := case_when(
+          str_detect({{ highway }}, "\\b(COUNTY|CNTY|CTY|CO|CTHY?)\\b") ~ "COUNTY HIGHWAY",
+          str_detect({{ highway }}, "\\b(STATE)\\b") ~ "STATE HIGHWAY",
+          .default = "HIGHWAY"
+        ),
+        {{ highway_num }} := str_replace_all({{ highway_num }}, "\\d{2,3}", replace_number),
+        {{ highway_num }} := str_replace_all({{ highway_num }}, "&", "AND")
+      ) |>
+      unite({{ highway }}, c({{ highway }}, {{ highway_num }}), sep = " ", na.rm = TRUE) |>
+      mutate({{ input_column }} := str_replace_all({{ input_column }}, regex_hwy, {{ highway }})) |>
+      select(-highway)
+    df <- bind_rows(df, df_hwy)
+  }
+
+  df
 }
