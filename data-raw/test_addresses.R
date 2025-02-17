@@ -10,6 +10,7 @@ test_addresses <- tribble(
   "1406 W Whitten W Unit Upper",
   # ordinals & other numerical street names
   "123 97h St",
+  "123 97 Av",
   "123 Raven Dr",
   "123 East 97th St",
   "123 East 91 st St",

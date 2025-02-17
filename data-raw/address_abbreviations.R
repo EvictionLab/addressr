@@ -32,6 +32,7 @@ special_street_names <- tribble(
   "^(MC)\\W([A-Z]{3,})", "\\1\\2",
   "P( )?TREE", "PEACHTREE",
   "CONT(L)? C[OL]+NY", "CONTINENTAL COLONY",
+  "C[EASR]+( E)? CHAVEZ", "CESAR CHAVEZ",
   "ATL", "ATLANTA",
 )
 
