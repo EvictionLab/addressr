@@ -178,8 +178,9 @@ special_units <- tribble(
 
 highways <- tribble(
   ~short, ~long,
-  "(STATE) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRK|TK)", "STATE HIGHWAY",
-  "(COUNTY|CNTY|CTY|CO) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRK|TK)", "COUNTY HIGHWAY",
+  "(STATE|ST) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRNK|TRK|TK)", "STATE HIGHWAY",
+  "STH", "STATE HIGHWAY",
+  "(COUNTY|CNTY|CTY|CO) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRNK|TRK|TK)", "COUNTY HIGHWAY",
   "COUNTY", "COUNTY HIGHWAY",
   "CTHY?", "COUNTY HIGHWAY",
   "CTY", "COUNTY HIGHWAY",
@@ -187,7 +188,7 @@ highways <- tribble(
   "HIGHWAY", "HIGHWAY",
   "HWY", "HIGHWAY",
   "HY", "HIGHWAY",
-  "US", "HIGHWAY",
+  "U\\.? ?S\\.? ?", "HIGHWAY",
 ) |> mutate(type = "highways")
 
 address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units, highways)

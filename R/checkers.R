@@ -299,7 +299,7 @@ check_highways <- function(.data, input_column) {
       mutate(
         {{ highway }} := case_when(
           str_detect({{ highway }}, "\\b(COUNTY|CNTY|CTY|CO|CTHY?)\\b") ~ "COUNTY HIGHWAY",
-          str_detect({{ highway }}, "\\b(STATE)\\b") ~ "STATE HIGHWAY",
+          str_detect({{ highway }}, "\\b(STATE|STH?)\\b") ~ "STATE HIGHWAY",
           .default = "HIGHWAY"
         ),
         {{ highway_num }} := str_replace_all({{ highway_num }}, "\\d{2,3}", replace_number),
