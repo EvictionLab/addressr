@@ -102,6 +102,7 @@ test_addresses <- tribble(
   "12135, 215, 205 & 221 W Main Ave",
   "MATT D DBA EL LLC 12135, 215, 205 & 221 W Main Ave",
   "1233-1233A-1233B S 15TH St",
+  "1233A-1233B S 15TH St",
   # multi-address: street
   "1234 Main 540-44 Main",
   "1234 S Main 540-44 S Main",
@@ -109,6 +110,7 @@ test_addresses <- tribble(
   "121-125 N Main St / 187-189 S Main St",
   "700-706 700-706 S 10th St 935-937 W Pierce St",
   # units & buildings
+  "123A2 N Main St",
   "123 1B 15th St",
   "123A Main Street South",
   "123 A Main Street South",

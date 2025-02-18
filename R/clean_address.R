@@ -185,7 +185,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     # check street number ranges
     # see checkers.r for these functions
     tic("check street numbers, units, and buildings")
-    df <- df |> check_street_range(street_number_multi, street_number, addressr_id)
+    df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
 
     # check units
     df <- df |>

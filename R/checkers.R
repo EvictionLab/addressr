@@ -88,7 +88,7 @@ check_pattern <- function(pattern) {
 
 }
 
-check_street_range <- function(.data, street_number_multi, street_number, addressr_id) {
+check_street_range <- function(.data, street_number_multi, street_number, addressr_id, building) {
 
   street_number_and <- sym("street_number_and")
   street_number_first <- sym("street_number_first")
@@ -100,7 +100,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
   street_number_first_length <- sym("street_number_first_length")
   street_number_length <- sym("street_number_length")
   street_number_logic <- sym("street_number_logic")
-  building <- sym("building")
+  building_2 <- sym("building_2")
 
   df_ranges <- .data |> filter(!is.na(street_number_multi))
 
@@ -112,10 +112,10 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
       mutate(
         street_number_and = str_extract(street_number_multi, "AND|&|,|OR"),
         street_number_multi = str_replace_all(street_number_multi, "\\W|AND|OR", " ") |> str_squish(),
-        street_number_first = str_extract(street_number_multi, "^\\d+\\b")
+        street_number_first = str_extract(street_number_multi, "^\\d+")
         ) |>
       separate_longer_delim(street_number_multi, delim = " ") |>
-      extract_remove_squish({{ street_number_multi }}, building, "[A-Z]$") |>
+      extract_remove_squish({{ street_number_multi }}, building_2, "[A-Z]$") |>
       distinct() |>
       mutate(
         street_number_id = row_number(),
@@ -147,6 +147,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
              street_number_logic = case_when(
                street_number_n == 1 ~ "street_number",
                street_number_n > 2 ~ "ready",
+               street_number_min == street_number_max ~ "ready",
                street_number_n == 2 & (street_number_diff == 2 | !is.na(street_number_and)) ~ "ready",
                street_number_n == 2 & street_number_diff > 2 & street_number_diff <= 20 ~ "seq_along",
                .default = "error"
@@ -227,7 +228,9 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
   }
 
-  df
+  df <- df |>
+    unite({{ building }}, any_of(c("building", "building_2")), sep = " ", na.rm = TRUE) |>
+    mutate(building := na_if(building, ""))
 
 }
 
