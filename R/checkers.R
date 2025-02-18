@@ -52,7 +52,25 @@ check_pattern <- function(pattern) {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long)))
     letter_unit <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W")])
 
-    pat <- paste0("(?<!^)\\W*(", pat, ".*$|\\b\\d+(\\W)?\\w$|", letter_unit, "((\\W)+?\\d)?$|\\b(\\d+(\\s?-\\s?))?\\d+$|\\bCOTTAGE$|(?<=\\b|\\d)[LU][FR]\\b|#.*$)")
+    # unit rules:
+    pat <- paste0(
+      # A. not at start of string + non-word character(s) +
+      "(?<!^)\\W*(",
+        # 1. unit_type + anything + END
+        pat, ".*$|",
+        # 2. digits + non-word character? + word character + END
+        "\\b\\d+(\\W)?\\w$|",
+        # 3. not HIGHWAY + letter (not NSEW) + non-word character ? + number ? + END
+        "(?<!HIGHWAY )", letter_unit, "((\\W)+?\\d)?$|",
+        # 4. numbers + - ? + numbers + END
+        "\\b(\\d+(\\s?-\\s?))?\\d+$|",
+        # 5. COTTAGE + END
+        "\\bCOTTAGE$|",
+        # 6. boundary or number ? + L or U + F or R
+        "(?<=\\b|\\d)[LU][FR]\\b|",
+        # 7. # + anything + END
+        "#.*$)"
+      )
   }
 
   if (pattern == "unit_db") {
@@ -70,7 +88,7 @@ check_pattern <- function(pattern) {
 
 }
 
-check_street_range <- function(.data, street_number_multi, street_number, addressr_id) {
+check_street_range <- function(.data, street_number_multi, street_number, addressr_id, building) {
 
   street_number_and <- sym("street_number_and")
   street_number_first <- sym("street_number_first")
@@ -82,7 +100,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
   street_number_first_length <- sym("street_number_first_length")
   street_number_length <- sym("street_number_length")
   street_number_logic <- sym("street_number_logic")
-  building <- sym("building")
+  building_2 <- sym("building_2")
 
   df_ranges <- .data |> filter(!is.na(street_number_multi))
 
@@ -94,10 +112,10 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
       mutate(
         street_number_and = str_extract(street_number_multi, "AND|&|,|OR"),
         street_number_multi = str_replace_all(street_number_multi, "\\W|AND|OR", " ") |> str_squish(),
-        street_number_first = str_extract(street_number_multi, "^\\d+\\b")
+        street_number_first = str_extract(street_number_multi, "^\\d+")
         ) |>
       separate_longer_delim(street_number_multi, delim = " ") |>
-      extract_remove_squish({{ street_number_multi }}, building, "[A-Z]$") |>
+      extract_remove_squish({{ street_number_multi }}, building_2, "[A-Z]$") |>
       distinct() |>
       mutate(
         street_number_id = row_number(),
@@ -129,6 +147,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
              street_number_logic = case_when(
                street_number_n == 1 ~ "street_number",
                street_number_n > 2 ~ "ready",
+               street_number_min == street_number_max ~ "ready",
                street_number_n == 2 & (street_number_diff == 2 | !is.na(street_number_and)) ~ "ready",
                street_number_n == 2 & street_number_diff > 2 & street_number_diff <= 20 ~ "seq_along",
                .default = "error"
@@ -209,7 +228,9 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
   }
 
-  df
+  df <- df |>
+    unite({{ building }}, any_of(c("building", "building_2")), sep = " ", na.rm = TRUE) |>
+    mutate(building := na_if(building, ""))
 
 }
 
@@ -280,4 +301,36 @@ check_building <- function(.data, street_number, street_number_multi, building, 
 
   df
 
+}
+
+check_highways <- function(.data, input_column) {
+
+  regex_hwy <- paste0("(", str_collapse_bound(unique(highways$short, highways$long)), " )+(?!(ST|AV|CV|LN|CI|PL|BV|WY))(\\d{2,3}|[A-Z]{1,2})( (AND|&) \\d{2,3})?\\b")
+
+  df_hwy <- .data |> filter(str_detect({{ input_column }}, regex_hwy))
+  df <- .data |> anti_join(df_hwy, by = "addressr_id")
+
+  if (nrow(df_hwy) != 0) {
+    highway <- sym("highway")
+    highway_num <- sym("highway_num")
+
+    df_hwy <- df_hwy |>
+      mutate({{ highway }} := str_extract({{ input_column }}, regex_hwy)) |>
+      extract_remove_squish({{ highway }}, "highway_num", "(\\d{2,3}|[A-Z]{1,2})( (AND|&) \\d{2,3})?$") |>
+      mutate(
+        {{ highway }} := case_when(
+          str_detect({{ highway }}, "\\b(COUNTY|CNTY|CTY|CO|CTHY?)\\b") ~ "COUNTY HIGHWAY",
+          str_detect({{ highway }}, "\\b(STATE|STH?)\\b") ~ "STATE HIGHWAY",
+          .default = "HIGHWAY"
+        ),
+        {{ highway_num }} := str_replace_all({{ highway_num }}, "\\d{2,3}", replace_number),
+        {{ highway_num }} := str_replace_all({{ highway_num }}, "&", "AND")
+      ) |>
+      unite({{ highway }}, c({{ highway }}, {{ highway_num }}), sep = " ", na.rm = TRUE) |>
+      mutate({{ input_column }} := str_replace_all({{ input_column }}, regex_hwy, {{ highway }})) |>
+      select(-highway)
+    df <- bind_rows(df, df_hwy)
+  }
+
+  df
 }

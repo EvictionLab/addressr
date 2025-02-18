@@ -107,17 +107,36 @@ prep_address <- function(string) {
   x <- string |>
     str_to_upper() |>
     str_replace_all(c(
+      # replace commas with spaces, except when separating numbers
       "(?<!\\d),(?! \\d)" = " ",
+      # replace N/?A with space
       "\\bN\\W?A\\b" = " ",
+      # replace ampersand
       "&AMP;" = "&",
+      # replace period surrounded by word characters with space
       "(\\w)\\.(\\w)" = "\\1 \\2",
+      # insert space between number + 2 or more non-ordinal letters
       "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2",
-      "(\\d)\\s?([SNRT][TDH])\\s?(ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1\\2 \\3",
-      "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING"
+      # insert space between number at string start + letter + number
+      "^(\\d+)([A-Z]\\d)" = "\\1 \\2",
+      # change number + st road + numbers to state road (remove?)
+      "(\\d) (ST) (RD|ROAD) #? ?(\\d{2})" = "\\1 STATE \\3 \\4",
+      # remove space if number + ordinal ending + street suffix
+      "(\\d)\\s?([SNRT][TDH])\\s?(ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1\\2 \\3",
+      # add ordinal ending if number + one letter from ending OR too many Ts or Hs + street suffix
+      "(\\d)([RTDH]|T{1,2}H{1,2})\\s(ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1TH \\3",
+      # add ordinal ending if string start + number + number + street suffix
+      "^(\\d+) (\\d+) (ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1 \\2TH \\3",
+      # standardize MLK
+      "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING",
+      # move building letter to end if string starts with NSEW + 3 or more numbers + letter
+      "^([NSEW]\\d{3,})([A-Z] )(.*)" = "\\1 \\3 \\2",
+      # move unit to end if it follows street number
+      "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d|APT \\w+|APARTMENT \\w+|NUM \\d+|UNIT \\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
       )) |>
     str_remove_all(c("\\.|'")) |>
-    str_replace_all("\\b\\d{1,2}(?= MILE)", replace_number) |>
-    str_replace_all("(?<=\\d [NSEW] )\\d{1,3}(?= (ST|AV))", replace_ordinals) |>
+    str_replace_all("(?<!/)\\b\\d{1,2}(?= MILE)", replace_number) |>
+    str_replace_all("(?<=\\d[A-Z]? [NSEW] )\\d{1,3}(?= (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE))", replace_ordinals) |>
     str_squish()
 }
 
@@ -128,18 +147,28 @@ replace_ordinals <- function(string) {
 }
 
 replace_number <- function(string) {
-  number <- as.numeric(str_extract(string, "\\d+"))
-  x <- ordinals[ordinals$number == number, "long_number"]
-  as.character(x)
+  if (str_detect(string, "\\d")) {
+    number <- as.numeric(str_extract(string, "\\d+"))
+    x <- ordinals[ordinals$number == number, "long_number"]
+    x <- as.character(x)
+  } else {
+    x <- string
+  }
+  x
 }
 
 replace_fraction <- function(string) {
   num_1 <- str_extract(string, "^\\d+")
   num_1 <- replace_number(num_1)
-  num_2 <- str_extract(string, " \\d+[\\s/]")
+  num_2 <- str_extract(string, " (\\d+|\\w+)[\\s/]")
   num_2 <- replace_number(num_2)
-  num_3 <- str_extract(string, "\\d+(?=(THS)?$)")
-  num_3 <- fractions[fractions$short == num_3, "long"]
+  num_3 <- str_extract(string, "(\\d+|HALF|FOUR|EIGH|SIXTEEN)(?=(THS?)?$)")
+
+  if (str_detect(num_3, "\\d")) {
+    num_3 <- fractions[fractions$short == num_3, "long"]
+  } else if (num_3 %in% c("FOUR", "EIGH", "SIXTEEN")) {
+    num_3 <- paste0(num_3, "THS")
+  }
 
   paste(num_1, "AND", num_2, num_3)
 }

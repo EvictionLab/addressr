@@ -91,6 +91,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       df <- bind_rows(df, df_frac)
     }
 
+    df <- df |> check_highways({{ input_column }})
+
     # step 2: separate out multiple addresses
     tic("separate multiple addresses")
     # current logic to delim: (etc + street suffix) + [punctuation, and, or space] + (numbers + etc + street suffix)
@@ -157,6 +159,11 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     tic("standardize street suffix, directions & ordinals")
 
+    replace_coords <- c(
+      "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)" = "\\1\\2 \\3\\4",
+      "^(\\d{3})\\s?([NSEW])\\s?(\\d+)" = "\\1 \\2\\3"
+    )
+
     df <- df |>
       # ordinals
       mutate(
@@ -164,7 +171,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
         {{ input_column }} := str_replace_all({{ input_column }}, "\\b\\d{1,3}[RSTN][DTH]\\b", replace_ordinals)
         ) |>
       # street number coords
-      mutate({{ street_number_coords }} := str_replace({{ street_number_coords }}, "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)", "\\1\\2 \\3\\4")) |>
+      mutate({{ street_number_coords }} := str_replace_all({{ street_number_coords }}, replace_coords)) |>
       # street suffixes
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
       mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>
@@ -178,7 +185,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     # check street number ranges
     # see checkers.r for these functions
     tic("check street numbers, units, and buildings")
-    df <- df |> check_street_range(street_number_multi, street_number, addressr_id)
+    df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
 
     # check units
     df <- df |>

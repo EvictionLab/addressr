@@ -11,12 +11,12 @@
 address_regex <- tribble(
   ~address_part, ~regex,
   "street_number", "^\\d+\\b",
-  "street_number_multi", "^(\\d+[A-Z]?\\b(\\W|AND|OR)+)+(?! [STNDRH]{2})",
+  "street_number_multi", "^(\\d+[A-Z]?\\b(\\W|AND[^A-Z]|OR[^A-Z])+)+(?! [STNDRH]{2})",
   "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
   "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
   "street_number_fraction", "[1-9]/\\d\\b",
-  "street_name_fraction", "(?<=\\d )\\d{1,2} \\d{1,2}[ /]\\d{1,2}(THS)?(?= (ST|AV|MILE))",
-  "street_number_coords", "\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+",
+  "street_name_fraction", "(?<=\\d )\\d{1,2} (\\d{1,2}|(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN))[ /](\\d{1,2}(THS?)?|(HALF|FOURTH|EIGHTH|SIXTEENTH)S?)(?= (\\d{1,3}[SNRT][TDH] )?(ST|AV|MILE))",
+  "street_number_coords", "(\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+)|(\\d{3,}\\s?[NSEW]\\s?\\d{3,}\\b)",
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
   "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX \\w+)",
   "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
@@ -32,6 +32,7 @@ special_street_names <- tribble(
   "^(MC)\\W([A-Z]{3,})", "\\1\\2",
   "P( )?TREE", "PEACHTREE",
   "CONT(L)? C[OL]+NY", "CONTINENTAL COLONY",
+  "C[EASR]+( E)? CHAVEZ", "CESAR CHAVEZ",
   "ATL", "ATLANTA",
 )
 
@@ -75,7 +76,7 @@ all_street_suffixes_1 <- street_suffix_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
   distinct() |>
   rename(short = 1, long = 2) |>
-  filter(short != long) |>
+  filter(short != long & short != "HWY") |>
   mutate(type = "all_street_suffixes")
 
 # manual common fixes. short = official abbreviation, long = manual abbr
@@ -88,9 +89,10 @@ all_street_suffixes_2 <- tribble(
   "CIR", "CI",
   "CT", "CRT",
   "EXPY", "EX",
-  "HWY", "HY",
+  # "HWY", "HY",
   "LANE", "LA",
   "PKWY", "PY",
+  "PKWY", "PARK WAY",
   "TER", "TE",
   "TRCE", "TR",
   "MHP", "MOBILE HOME PARK",
@@ -174,10 +176,25 @@ special_units <- tribble(
   "BACK", "BACK",
 ) |> mutate(type = "special_units")
 
-address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units)
+highways <- tribble(
+  ~short, ~long,
+  "(STATE|ST) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRNK|TRK|TK)", "STATE HIGHWAY",
+  "STH", "STATE HIGHWAY",
+  "(COUNTY|CNTY|CTY|CO) (HIGHWAY|HWY|ROAD|RD|TRUNK|TRNK|TRK|TK)", "COUNTY HIGHWAY",
+  "COUNTY", "COUNTY HIGHWAY",
+  "CTHY?", "COUNTY HIGHWAY",
+  "CTY", "COUNTY HIGHWAY",
+  "CO", "COUNTY HIGHWAY",
+  "HIGHWAY", "HIGHWAY",
+  "HWY", "HIGHWAY",
+  "HY", "HIGHWAY",
+  "U\\.? ?S\\.? ?", "HIGHWAY",
+) |> mutate(type = "highways")
+
+address_abbreviations <- bind_rows(directions, all_street_suffixes, official_street_suffixes, unit_types, special_units, highways)
 
 addr_abbr <- address_abbreviations
 
 usethis::use_data(address_abbreviations, overwrite = TRUE)
 
-usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, overwrite = TRUE, internal = TRUE)
+usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, highways, overwrite = TRUE, internal = TRUE)
