@@ -20,7 +20,7 @@ address_regex <- tribble(
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
   "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX \\w+)",
   "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
-  "special_units_regex", "\\b((UP+[ER]+|LO*WE*R|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S[OUTH]+|E[AST]+|W[EST]+)*$"
+  "special_units_regex", "\\b((UP+[ER]+|LO*WE*R|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S(O|[OUTH]{2,})?|E[AST]+|W[EST]+)*$"
 )
 
 special_street_names <- tribble(
