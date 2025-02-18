@@ -52,7 +52,25 @@ check_pattern <- function(pattern) {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long)))
     letter_unit <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W")])
 
-    pat <- paste0("(?<!^)\\W*(", pat, ".*$|\\b\\d+(\\W)?\\w$|(?<!HIGHWAY )", letter_unit, "((\\W)+?\\d)?$|\\b(\\d+(\\s?-\\s?))?\\d+$|\\bCOTTAGE$|(?<=\\b|\\d)[LU][FR]\\b|#.*$)")
+    # unit rules:
+    pat <- paste0(
+      # A. not at start of string + non-word character(s) +
+      "(?<!^)\\W*(",
+        # 1. unit_type + anything + END
+        pat, ".*$|",
+        # 2. digits + non-word character? + word character + END
+        "\\b\\d+(\\W)?\\w$|",
+        # 3. not HIGHWAY + letter (not NSEW) + non-word character ? + number ? + END
+        "(?<!HIGHWAY )", letter_unit, "((\\W)+?\\d)?$|",
+        # 4. numbers + - ? + numbers + END
+        "\\b(\\d+(\\s?-\\s?))?\\d+$|",
+        # 5. COTTAGE + END
+        "\\bCOTTAGE$|",
+        # 6. boundary or number ? + L or U + F or R
+        "(?<=\\b|\\d)[LU][FR]\\b|",
+        # 7. # + anything + END
+        "#.*$)"
+      )
   }
 
   if (pattern == "unit_db") {

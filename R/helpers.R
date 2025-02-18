@@ -107,17 +107,31 @@ prep_address <- function(string) {
   x <- string |>
     str_to_upper() |>
     str_replace_all(c(
+      # replace commas with spaces, except when separating numbers
       "(?<!\\d),(?! \\d)" = " ",
+      # replace N/?A with space
       "\\bN\\W?A\\b" = " ",
+      # replace ampersand
       "&AMP;" = "&",
+      # replace period surrounded by word characters with space
       "(\\w)\\.(\\w)" = "\\1 \\2",
+      # insert space between number + 2 or more non-ordinal letters
       "(\\d+)([ABCDEFGHIJKLMOPQUVWXYZ][ABCEFGIJKLMNOPQRSUVWXYZ][A-Z]*)" = "\\1 \\2",
+      # insert space between number at string start + letter + number
+      "^(\\d+)([A-Z]\\d)" = "\\1 \\2",
+      # change number + st road + numbers to state road (remove?)
       "(\\d) (ST) (RD|ROAD) #? ?(\\d{2})" = "\\1 STATE \\3 \\4",
+      # remove space if number + ordinal ending + street suffix
       "(\\d)\\s?([SNRT][TDH])\\s?(ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1\\2 \\3",
+      # add ordinal ending if number + one letter from ending OR too many Ts or Hs + street suffix
       "(\\d)([RTDH]|T{1,2}H{1,2})\\s(ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1TH \\3",
+      # add ordinal ending if string start + number + number + street suffix
       "^(\\d+) (\\d+) (ST|AV|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|BV|STRA|CV|COVE)" = "\\1 \\2TH \\3",
+      # standardize MLK
       "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING",
+      # move building letter to end if string starts with NSEW + 3 or more numbers + letter
       "^([NSEW]\\d{3,})([A-Z] )(.*)" = "\\1 \\3 \\2",
+      # move unit to end if it follows street number
       "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d|APT \\w+|APARTMENT \\w+|NUM \\d+|UNIT \\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
       )) |>
     str_remove_all(c("\\.|'")) |>
