@@ -242,7 +242,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 #' @param street_suffix The street suffix (123 N Main <St>)
 #' @param building The building number or letter
 #' @param addressr_id Unique row_id
-check_unit <- function(.data, unit, unit_type, street_number, street_suffix, building, addressr_id) {
+check_unit <- function(.data, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id) {
 
   df_unit <- .data |> filter(!is.na({{ unit }}))
 
@@ -277,11 +277,14 @@ check_unit <- function(.data, unit, unit_type, street_number, street_suffix, bui
 
   }
 
-  df
+  df |>
+    unite({{ unit }}, c("unit", "special_unit", "special_unit_2"), sep = " ", na.rm = TRUE) |>
+    mutate({{ unit }} := switch_abbreviation({{ unit }}, "special_units", "short-to-long"),
+           {{ unit }} := str_squish({{ unit }}) |> na_if(""))
 
 }
 
-check_building <- function(.data, street_number, street_number_multi, building, addressr_id) {
+check_missing_number <- function(.data, input_column, street_number, street_number_multi, street_number_coords, building, addressr_id) {
 
   # if the street number is missing & there's a number in the building, extract it.
   df_bldg <- .data |>
@@ -297,6 +300,17 @@ check_building <- function(.data, street_number, street_number_multi, building, 
 
     df <- bind_rows(df, df_bldg)
 
+  }
+
+  # if the street number is missing & the input column starts with a number, extract it
+  df_num <- df |> filter(is.na({{ street_number }}) & str_starts({{ input_column }}, "\\d+"))
+  df <- df |> anti_join(df_num, by = "addressr_id")
+
+  if (nrow(df_num) != 0) {
+
+    df_num <- df_num |>
+      extract_remove_squish({{ input_column }}, "street_number", "^\\d+")
+    df <- bind_rows(df, df_num)
   }
 
   df
@@ -330,6 +344,50 @@ check_highways <- function(.data, input_column) {
       mutate({{ input_column }} := str_replace_all({{ input_column }}, regex_hwy, {{ highway }})) |>
       select(-highway)
     df <- bind_rows(df, df_hwy)
+  }
+
+  df
+}
+
+check_fractional_names <- function(.data, input_column) {
+
+  regex_frac <- check_pattern("street_name_fraction")
+
+  df_frac <- .data |> filter(str_detect({{ input_column }}, regex_frac))
+  df <- .data |> anti_join(df_frac, by = "addressr_id")
+
+  if (nrow(df_frac) != 0) {
+    df_frac <- df_frac |>
+      mutate({{ input_column }} := str_replace_all({{ input_column }}, regex_frac, replace_fraction))
+    df <- bind_rows(df, df_frac)
+  }
+
+  df
+}
+
+check_multi_address <- function(.data, input_column, addressr_id, all_suffix_regex) {
+
+  # current logic to delim: (etc + street suffix) + [punctuation, and, or space] + (numbers + etc + street suffix)
+  longer_regex <- paste0("(?<=", all_suffix_regex, ")\\s*([:punct:]| AND |\\s)\\s*(?=\\d+\\b.+", all_suffix_regex, ")")
+  # second logic to delim: (numbers + word 4-20 letters) + [punctuation, and, or space] + (numbers + same word)
+  longer_regex_2 <- "(?<=\\d (([NSEW] )?\\w{4,20}))\\s*([:punct:]| AND |\\s)\\s*(?=\\d+(\\W\\d+)? \\1)"
+
+  df_multi <- .data |> filter(str_detect({{ input_column }}, longer_regex) | str_detect({{ input_column }}, longer_regex_2))
+  df <- .data |> anti_join(df_multi, by = "addressr_id")
+
+  if (nrow(df_multi) != 0) {
+    addressr_addr_id <- sym("addressr_addr_id")
+
+    df_multi <- df_multi |>
+      separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex)) |>
+      separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex_2)) |>
+      distinct() |>
+      mutate({{ addressr_addr_id }} := row_number(), .by = "addressr_id") |>
+      unite({{ addressr_id }}, c("addressr_id", "addressr_addr_id"), sep = "-A", remove = FALSE) |>
+      select(-addressr_addr_id)
+
+    df <- bind_rows(df, df_multi)
+
   }
 
   df
