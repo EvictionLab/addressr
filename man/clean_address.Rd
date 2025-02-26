@@ -4,7 +4,12 @@
 \alias{clean_address}
 \title{Clean Addresses}
 \usage{
-clean_address(.data, input_column, dataset = "default")
+clean_address(
+  .data,
+  input_column,
+  dataset = "default",
+  separate_street_range = TRUE
+)
 }
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).}
@@ -12,6 +17,8 @@ clean_address(.data, input_column, dataset = "default")
 \item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
 
 \item{dataset}{The dataset to clean. Either "default", "quick", or "default_db"}
+
+\item{separate_street_range}{Should street numbers with a range be pivoted into individual rows?}
 }
 \value{
 An object of the same type as .data, with the following properties:

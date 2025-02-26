@@ -3,12 +3,13 @@
 #' @param .data A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).
 #' @param dataset The dataset to clean. Either "default", "quick", or "default_db"
 #' @param input_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
+#' @param separate_street_range Should street numbers with a range be pivoted into individual rows?
 #'
 #' @return An object of the same type as .data, with the following properties:
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
 #'    * New column containing the extracted strings.
 #' @export
-clean_address <- function(.data, input_column, dataset = "default") {
+clean_address <- function(.data, input_column, dataset = "default", separate_street_range = TRUE) {
 
   # column names. these prevent global variable warnings
   addressr_id <- sym("addressr_id")
@@ -163,7 +164,12 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # check street number ranges
     tic("check street numbers, units, and buildings")
-    df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
+
+    if (separate_street_range) {
+      df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
+    } else {
+      df <- df |> mutate(across(c(street_number_multi, street_number), str_squish))
+    }
 
     df <- df |> check_unit({{ input_column }}, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id)
 
