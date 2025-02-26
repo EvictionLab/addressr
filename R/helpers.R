@@ -133,6 +133,8 @@ prep_address <- function(string) {
       "^([NSEW]\\d{3,})([A-Z] )(.*)" = "\\1 \\3 \\2",
       # remove space between first direction and number
       "^([NSEW]) (\\d+)\\b" = "\\1\\2",
+      # if only number is at end, move to front
+      "^([^\\d]+)(?<!BOX )\\b(\\d+)$" = "\\2 \\1",
       # move unit to end if it follows street number
       "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d|APT \\w+|APARTMENT \\w+|NUM \\d+|UNIT \\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
       )) |>
