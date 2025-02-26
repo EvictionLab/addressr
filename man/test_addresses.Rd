@@ -5,7 +5,7 @@
 \alias{test_addresses}
 \title{Test address dataset}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 157 rows and 17 columns.
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 199 rows and 17 columns.
 }
 \usage{
 test_addresses
