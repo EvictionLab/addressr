@@ -131,6 +131,8 @@ prep_address <- function(string) {
       "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?" = "MARTIN LUTHER KING",
       # move building letter to end if string starts with NSEW + 3 or more numbers + letter
       "^([NSEW]\\d{3,})([A-Z] )(.*)" = "\\1 \\3 \\2",
+      # remove space between first direction and number
+      "^([NSEW]) (\\d+)\\b" = "\\1\\2",
       # move unit to end if it follows street number
       "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d|APT \\w+|APARTMENT \\w+|NUM \\d+|UNIT \\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
       )) |>

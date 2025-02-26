@@ -114,7 +114,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     # TODO: rework the first part & improve street numbers, units, and buildings together
     df <- df |>
-      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?!\\d+\\W?[NSEW]\\s?\\d+)") |>
+      extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?!\\d+\\W?[NSEW]\\s?\\d+?)") |>
       extract_remove_squish({{ input_column }}, "street_number_coords", "street_number_coords") |>
       extract_remove_squish({{ input_column }}, "street_number_fraction", "street_number_fraction") |>
       extract_remove_squish({{ input_column }}, "street_number_multi", "street_number_multi") |>
@@ -136,7 +136,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
     replace_coords <- c(
       "([NSEW])\\s?(\\d+)\\W?([NSEW])\\s?(\\d+)" = "\\1\\2 \\3\\4",
-      "^(\\d{3})\\s?([NSEW])\\s?(\\d+)" = "\\1 \\2\\3"
+      "^(\\d{3})\\s?([NSEW])\\s?(\\d+)" = "\\1 \\2\\3",
+      "^([NSEW])\\s?(\\d+)$" = "\\1\\2"
     )
 
     df <- df |>
