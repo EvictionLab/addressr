@@ -3,6 +3,9 @@
 test_addresses <- tribble(
   ~address,
   "123 Main St",
+  "123 Main St Parkway",
+  "PO BOX 123",
+  "123 Park Place Market St",
   # directions
   "123 N Main St",
   "123 East Main St",
@@ -28,9 +31,14 @@ test_addresses <- tribble(
   "123 22 1 8th Ave #101",
   "123 8 Mile Rd",
   "123 8 1/2 Mile Rd",
+  "123 8TH St SOUTH TRL #45",
   # other tricky streets
+  "Main St #58",
   "123 Andie St",
   "123 Orchard St",
+  "123 W Flower St",
+  "213 W Main Ave Parkview CT #23",
+  "1234 Green Forest Run #5",
   "123 County St",
   "123 State Rd",
   "123 County Road 54",
@@ -59,6 +67,7 @@ test_addresses <- tribble(
   "12 Dr Martin Luther King Jr Blvd S",
   # tricky streets: suffix names
   "123 Green Tree Rd",
+  "123 High Point Oaks Ln",
   "123 E Parkway W",
   "123 Cottage St",
   "123 ST RD #72",
@@ -78,6 +87,8 @@ test_addresses <- tribble(
   "MATT D DBA EL LLC N 123 W1234 Main Ave",
   "N123 W1234 Main Ave",
   "N123 W 1234 Main Ave",
+  "N1234 Main RD PK",
+  "N 123 Main RD PK",
   # multi-address: number
   "123 East Main St 123",
   "123 and 125 East Main St 123-A",
@@ -127,6 +138,7 @@ test_addresses <- tribble(
   "123 1st st # 7-9",
   "123 N Main St FLOOR",
   "123 N Main St FL LOWR",
+  "123 N Main St 1st FL",
   "123 N Main St LOWER",
   "123 N Main St LOWER FLAT",
   "123 N Main St LF",
@@ -136,6 +148,10 @@ test_addresses <- tribble(
   "123 N Main St - DEPT 2",
   "1427 S 89st St Upper East",
   "123 Main St Rear Cottage",
+  "123 Main C4 #L201",
+  "6160 SOUTH ST #E11",
+  "1200 Main View Ave #16",
+  "143 W Main Lower Unit",
 ) |>
   clean_address(address) |>
   janitor::remove_empty("cols")

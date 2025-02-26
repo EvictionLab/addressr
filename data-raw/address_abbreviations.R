@@ -15,12 +15,12 @@ address_regex <- tribble(
   "street_number_range", "^\\d+(\\s+)?(\\W+|AND)(\\s+)?\\d+\\b(?! [STNDRH]{2})",
   "street_number_range_db", "^\\d+(\\s+)?(-|/| )(\\s+)?\\d+\\b",
   "street_number_fraction", "[1-9]/\\d\\b",
-  "street_name_fraction", "(?<=\\d )\\d{1,2} (\\d{1,2}|(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN))[ /](\\d{1,2}(THS?)?|(HALF|FOURTH|EIGHTH|SIXTEENTH)S?)(?= (\\d{1,3}[SNRT][TDH] )?(ST|AV|MILE))",
-  "street_number_coords", "(\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+)|(\\d{3,}\\s?[NSEW]\\s?\\d{3,}\\b)",
+  "street_name_fraction", "(?<=\\d ([NSEW] )?)\\d{1,2} (\\d{1,2}|(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN))[ /](\\d{1,2}(THS?)?|(HALF|FOURTH|EIGHTH|SIXTEENTH)S?)(?= (\\d{1,3}[SNRT][TDH] )?(ST|AV|MILE))",
+  "street_number_coords", "(\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+)|(\\d{3,}\\s?[NSEW]\\s?\\d{3,}\\b)|([NSEW]\\s?\\d{3,}\\b)",
   "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b",
-  "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX \\w+)",
+  "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX ?\\w+)",
   "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
-  "special_units_regex", "\\b((UP+[ER]+|LO*WE*R|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S[OUTH]+|E[AST]+|W[EST]+)*$"
+  "special_units_regex", "\\b((UP+[ER]+|LO*WE*R*|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S(O|[OUTH]{2,})?|E[AST]+|W[EST]+)*$"
 )
 
 special_street_names <- tribble(
@@ -159,9 +159,12 @@ unit_types <- tribble(
   "DEPT", "DEPARTMENT",
   "DUPLEX", "DUPLEX",
   "ATTIC", "ATTIC",
+  "BSMT", "BASEMENT",
   "LOT", "LOT",
   "LVL", "LEVEL",
   "OFC", "OFFICE",
+  "NUM", "NUMBER",
+  "NO", "NUMBER",
   "#", "#",
 ) |> mutate(type = "unit_types")
 
@@ -171,6 +174,7 @@ special_units <- tribble(
   "UPPR", "UPPER",
   "LOWR", "LOWER",
   "LWR", "LOWER",
+  "LW", "LOWER",
   "FRNT", "FRONT",
   "REAR", "REAR",
   "BACK", "BACK",
