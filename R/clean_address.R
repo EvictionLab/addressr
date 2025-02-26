@@ -23,6 +23,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
   all_street_suffix <- sym("all_street_suffix")
   street_suffix <- sym("street_suffix")
   street_suffix_2 <- sym("street_suffix_2")
+  street_suffix_3 <- sym("street_suffix_3")
   pre_direction <- sym("pre_direction")
   post_direction <- sym("post_direction")
   building <- sym("building")
@@ -108,7 +109,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
 
 
     # step 3: separate out address components from each address & standardize spellings
-    common_suffix_regex <- str_collapse_bound(unique(c(most_common_suffixes$long, most_common_suffixes$short)))
+    common_suffix_regex <- str_collapse_bound(unique(c(most_common_suffixes$long, most_common_suffixes$short, "AV", "BV", "CI")))
     uncommon_suffix_regex <- str_collapse_bound(unique(c(least_common_suffixes$long, least_common_suffixes$short)))
     pre_direction_regex <- str_collapse_bound(unique(c(directions$long, directions$short)))
 
@@ -126,7 +127,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
       extract_remove_squish({{ input_column }}, "building", "building") |>
       extract_remove_squish({{ input_column }}, "post_direction", "post_direction") |>
       extract_remove_squish({{ input_column }}, "extra_back", str_glue("(?<!^({pre_direction_regex} )?){all_suffix_regex}.*|(?<=^{pre_direction_regex} ){common_suffix_regex}$")) |>
-      extract_remove_squish({{ extra_back }}, "street_suffix", str_glue("({all_suffix_regex} )?{all_suffix_regex}")) |>
+      extract_remove_squish({{ extra_back }}, "street_suffix_2", str_glue(".*{common_suffix_regex}|.*?{all_suffix_regex}")) |>
+      extract_remove_squish({{ extra_back }}, "street_suffix_3", str_glue("^{all_suffix_regex}")) |>
       extract_remove_squish({{ input_column }}, "pre_direction", "pre_direction")
 
     toc()
@@ -146,10 +148,14 @@ clean_address <- function(.data, input_column, dataset = "default") {
       # street number coords
       mutate({{ street_number_coords }} := str_replace_all({{ street_number_coords }}, replace_coords)) |>
       # street suffixes
-      mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "all_street_suffixes", "long-to-short")) |>
-      mutate({{ street_suffix }} := switch_abbreviation({{ street_suffix }}, "official_street_suffixes", "short-to-long")) |>
-      extract_remove_squish({{ street_suffix }}, "street_suffix_2", str_glue("^({uncommon_suffix_regex} *)+")) |>
-      mutate({{ street_suffix }} := str_replace({{ street_suffix }}, str_glue("({common_suffix_regex}) \\1"), "\\1")) |>
+      mutate(across(c({{ street_suffix_2 }}, {{ street_suffix_3 }}), ~ switch_abbreviation(., "all_street_suffixes", "long-to-short")),
+             across(c({{ street_suffix_2 }}, {{ street_suffix_3 }}), ~ switch_abbreviation(., "official_street_suffixes", "short-to-long"))) |>
+      # mutate({{ street_suffix_2 }} := switch_abbreviation({{ street_suffix_2 }}, "all_street_suffixes", "long-to-short")) |>
+      # mutate({{ street_suffix_2 }} := switch_abbreviation({{ street_suffix_2 }}, "official_street_suffixes", "short-to-long")) |>
+      mutate({{ street_suffix_2 }} := str_replace({{ street_suffix_2 }}, str_glue("({common_suffix_regex}) \\1"), "\\1")) |>
+      extract_remove_squish({{ street_suffix_2 }}, "street_suffix", str_glue("{common_suffix_regex}$")) |>
+      unite("street_suffix", c({{ street_suffix }}, {{ street_suffix_3 }}), na.rm = TRUE, sep = " ") |>
+      mutate({{ street_suffix }} := na_if({{ street_suffix }}, "")) |>
       # directions
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")),
              {{ post_direction }} := if_else((!is.na({{ pre_direction }}) & {{ post_direction }} == {{ pre_direction }}), NA_character_, {{ post_direction }}))
