@@ -264,9 +264,11 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 #' @param unit_type The type of unit (apt, #, etc)
 #' @param street_number The street number (<123> N Main St)
 #' @param street_suffix The street suffix (123 N Main <St>)
+#' @param special_unit Special units
+#' @param special_unit_2 Extra special units
 #' @param building The building number or letter
 #' @param addressr_id Unique row_id
-check_unit <- function(.data, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id) {
+check_unit <- function(.data, input_column, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id) {
 
   df_unit <- .data |> filter(!is.na({{ unit }}))
 
@@ -302,9 +304,12 @@ check_unit <- function(.data, unit, unit_type, special_unit, special_unit_2, str
   }
 
   df |>
+    extract_remove_squish({{ input_column }}, "extra_unit_2", "unit_stricter") |>
+    unite({{ extra_unit }}, c("extra_unit", "extra_unit_2"), sep = " ", na.rm = TRUE) |>
     unite({{ unit }}, c("unit", "special_unit", "special_unit_2"), sep = " ", na.rm = TRUE) |>
     mutate({{ unit }} := switch_abbreviation({{ unit }}, "special_units", "short-to-long"),
-           {{ unit }} := str_squish({{ unit }}) |> na_if(""))
+           {{ unit }} := str_squish({{ unit }}) |> na_if(""),
+           {{ extra_unit }} := na_if({{ extra_unit }}, ""))
 
 }
 

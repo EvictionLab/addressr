@@ -27,6 +27,8 @@ clean_address <- function(.data, input_column, dataset = "default") {
   post_direction <- sym("post_direction")
   building <- sym("building")
   extra_back <- sym("extra_back")
+  special_unit <- sym("special_unit")
+  special_unit_2 <- sym("special_unit_2")
   street_name <- sym("street_name")
   po_box <- sym("po_box")
 
@@ -156,7 +158,7 @@ clean_address <- function(.data, input_column, dataset = "default") {
     tic("check street numbers, units, and buildings")
     df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
 
-    df <- df |> check_unit(unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id)
+    df <- df |> check_unit({{ input_column }}, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id)
 
     df <- df |> check_missing_number({{ input_column }}, street_number, street_number_multi, street_number_coords, building, addressr_id)
 

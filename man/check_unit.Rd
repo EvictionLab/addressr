@@ -6,8 +6,11 @@
 \usage{
 check_unit(
   .data,
+  input_column,
   unit,
   unit_type,
+  special_unit,
+  special_unit_2,
   street_number,
   street_suffix,
   building,
@@ -17,9 +20,15 @@ check_unit(
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).}
 
+\item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
+
 \item{unit}{The unit number or letter}
 
 \item{unit_type}{The type of unit (apt, #, etc)}
+
+\item{special_unit}{Special units}
+
+\item{special_unit_2}{Extra special units}
 
 \item{street_number}{The street number (<123> N Main St)}
 
