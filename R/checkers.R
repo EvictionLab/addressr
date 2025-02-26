@@ -46,31 +46,55 @@ check_pattern <- function(pattern) {
     pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long, "COTTAGE$")))
   }
 
-  # IMPORTANT: unit_types will capture anything following the unit_type.
+
   # use pattern = "unit_type" for only the unit_type
-  if (pattern == "unit") {
-    pat <- str_collapse_bound(unique(c(unit_types$short, unit_types$long)))
-    letter_unit <- str_collapse_bound(LETTERS[!LETTERS %in% c("N", "S", "E", "W")])
+  if (pattern %in% c("unit", "unit_no_anchor", "unit_stricter")) {
+    pat <- str_flatten(unique(c(unit_types$short, unit_types$long)), collapse = "|")
+    letter_unit <- str_flatten(LETTERS[!LETTERS %in% c("N", "S", "E", "W")], collapse = "|")
 
     # unit rules:
-    pat <- paste0(
-      # A. not at start of string + non-word character(s) +
-      "(?<!^)\\W*(",
-        # 1. unit_type + anything + END
-        pat, ".*$|",
-        # 2. digits + non-word character? + word character + END
-        "\\b\\d+(\\W)?\\w$|",
-        # 3. not HIGHWAY + letter (not NSEW) + non-word character ? + number ? + END
-        "(?<!HIGHWAY )", letter_unit, "((\\W)+?\\d)?$|",
-        # 4. numbers + - ? + numbers + END
-        "\\b(\\d+(\\s?-\\s?))?\\d+$|",
-        # 5. COTTAGE + END
-        "\\bCOTTAGE$|",
-        # 6. boundary or number ? + L or U + F or R
-        "(?<=\\b|\\d)[LU][FR]\\b|",
-        # 7. # + anything + END
-        "#.*$)"
-      )
+    unit_pat <- c(
+      # 1. unit_type + anything
+      str_glue("({pat})(\\W\\w+|\\d+|$)(-\\w+| \\w)?"),
+      # 2. digits + non-word character? + letter (not NSEW)
+      str_glue("\\d+\\W?({letter_unit})"),
+      # 3. not HIGHWAY + letter (not NSEW) + non-word character ? + number ?
+      str_glue("(?<!HIGHWAY )({letter_unit})(\\W*\\d)?"),
+      # 4. letter + number
+      str_glue("({letter_unit})\\d+"),
+      # 5. numbers + - ? + numbers
+      "(\\d+(\\s?-\\s?))?\\d+",
+      # 6. COTTAGE
+      "COTTAGE",
+      # 7. boundary or number + L or U + F or R
+      "\\d?[LU][FR]",
+      # 8. ordinal number + floor
+      "\\d+[RSNT][DTH] FL(OOR)?"
+    )
+
+    if (pattern == "unit") {
+
+      # 1. unit_type + anything
+      # unit_pat[1] <- str_glue("({pat}).*")
+      # 2. digits + non-word character? + word character
+      unit_pat[2] <- "\\d+\\W?\\w"
+      # not at start, anchor to end
+      pat <- paste0("(?<!^)\\W*\\b(", str_flatten(unit_pat, collapse = "|"), ")$|#.*$")
+
+    } else if (pattern == "unit_no_anchor") {
+
+      pat <- str_collapse_bound(unit_pat)
+
+    } else if (pattern == "unit_stricter") {
+
+      # 3. not HIGHWAY + letter (not NSEW) + non-word character ? + number
+      unit_pat[3] <- str_glue("(?<!HIGHWAY )({letter_unit})\\W*\\d")
+      # no stand alone numbers or COTTAGE
+      unit_pat <- unit_pat[-c(5, 6)]
+      pat <- str_collapse_bound(unit_pat)
+
+    }
+
   }
 
   if (pattern == "unit_db") {
