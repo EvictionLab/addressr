@@ -3,6 +3,7 @@
 test_addresses <- tribble(
   ~address,
   "123 Main St",
+  "123 Miles St",
   "123 Main St Parkway",
   "PO BOX 123",
   "123 Park Place Market St",

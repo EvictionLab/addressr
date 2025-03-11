@@ -202,7 +202,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
       df_ranges_two <- df_ranges_two |>
         extract_remove_squish(street_number_multi, street_number, "\\d+") |>
-        unite({{ addressr_id }}, c("addressr_id", "street_number_id"), sep = "-N", remove = TRUE) |>
+        unite({{ addressr_id }}, any_of(c("addressr_id", "street_number_id")), sep = "-N", remove = TRUE) |>
         select(-c(street_number_and, street_number_first, street_number_n, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
       df <- bind_rows(df, df_ranges_two)
@@ -224,7 +224,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
                {{ street_number_id }} := row_number(),
                {{ street_number_multi }} := NA_character_,
                .by = "addressr_id") |>
-        unite({{ addressr_id }}, c("addressr_id", "street_number_id"), sep = "-N", remove = TRUE) |>
+        unite({{ addressr_id }}, any_of(c("addressr_id", "street_number_id")), sep = "-N", remove = TRUE) |>
         select(-c(street_number_and, street_number_first, street_number_n, street_number_min, street_number_max, street_number_diff, street_number_first_length, street_number_length, street_number_logic))
 
       df <- bind_rows(df, df_ranges_three)
@@ -295,8 +295,8 @@ check_unit <- function(.data, input_column, unit, unit_type, special_unit, speci
         {{ unit_text }} := if_else(((!is.na({{ street_suffix }}) & {{ unit_text }} == {{ street_suffix }}) | (!is.na({{ building }}) & {{ unit_text }} == {{ building }})), NA_character_, {{ unit_text }}),
         {{ extra_unit }} := if_else((!is.na({{ unit_type }}) & {{ unit_text }} == {{ unit_type }}), NA_character_, extra_unit)
       ) |>
-      unite(extra_unit, c(unit, extra_unit), sep = "", na.rm = TRUE) |>
-      unite(unit, c(unit_number, unit_text), sep = "", na.rm = TRUE) |>
+      unite(extra_unit, any_of(c("unit", "extra_unit")), sep = "", na.rm = TRUE) |>
+      unite(unit, any_of(c("unit_number", "unit_text")), sep = "", na.rm = TRUE) |>
       mutate(extra_unit := na_if(extra_unit, ""))
 
     df <- bind_rows(df, df_unit)
@@ -305,8 +305,8 @@ check_unit <- function(.data, input_column, unit, unit_type, special_unit, speci
 
   df |>
     extract_remove_squish({{ input_column }}, "extra_unit_2", "unit_stricter") |>
-    unite({{ extra_unit }}, c("extra_unit", "extra_unit_2"), sep = " ", na.rm = TRUE) |>
-    unite({{ unit }}, c("unit", "special_unit", "special_unit_2"), sep = " ", na.rm = TRUE) |>
+    unite({{ extra_unit }}, any_of(c("extra_unit", "extra_unit_2")), sep = " ", na.rm = TRUE) |>
+    unite({{ unit }}, any_of(c("unit", "special_unit", "special_unit_2")), sep = " ", na.rm = TRUE) |>
     mutate({{ unit }} := switch_abbreviation({{ unit }}, "special_units", "short-to-long"),
            {{ unit }} := str_squish({{ unit }}) |> na_if(""),
            {{ extra_unit }} := na_if({{ extra_unit }}, ""))
@@ -369,7 +369,7 @@ check_highways <- function(.data, input_column) {
         {{ highway_num }} := str_replace_all({{ highway_num }}, "\\d{2,3}", replace_number),
         {{ highway_num }} := str_replace_all({{ highway_num }}, "&", "AND")
       ) |>
-      unite({{ highway }}, c({{ highway }}, {{ highway_num }}), sep = " ", na.rm = TRUE) |>
+      unite({{ highway }}, any_of(c("highway", "highway_num")), sep = " ", na.rm = TRUE) |>
       mutate({{ input_column }} := str_replace_all({{ input_column }}, regex_hwy, {{ highway }})) |>
       select(-highway)
     df <- bind_rows(df, df_hwy)
@@ -412,7 +412,7 @@ check_multi_address <- function(.data, input_column, addressr_id, all_suffix_reg
       separate_longer_delim({{ input_column }}, delim = stringr::regex(longer_regex_2)) |>
       distinct() |>
       mutate({{ addressr_addr_id }} := row_number(), .by = "addressr_id") |>
-      unite({{ addressr_id }}, c("addressr_id", "addressr_addr_id"), sep = "-A", remove = FALSE) |>
+      unite({{ addressr_id }}, any_of(c("addressr_id", "addressr_addr_id")), sep = "-A", remove = FALSE) |>
       select(-addressr_addr_id)
 
     df <- bind_rows(df, df_multi)

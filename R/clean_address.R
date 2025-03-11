@@ -155,7 +155,7 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
       # mutate({{ street_suffix_2 }} := switch_abbreviation({{ street_suffix_2 }}, "official_street_suffixes", "short-to-long")) |>
       mutate({{ street_suffix_2 }} := str_replace({{ street_suffix_2 }}, str_glue("({common_suffix_regex}) \\1"), "\\1")) |>
       extract_remove_squish({{ street_suffix_2 }}, "street_suffix", str_glue("{common_suffix_regex}$")) |>
-      unite("street_suffix", c({{ street_suffix }}, {{ street_suffix_3 }}), na.rm = TRUE, sep = " ") |>
+      unite("street_suffix", any_of(c("street_suffix", "street_suffix_3")), na.rm = TRUE, sep = " ") |>
       mutate({{ street_suffix }} := na_if({{ street_suffix }}, "")) |>
       # directions
       mutate(across(c({{ pre_direction }}, {{ post_direction }}), ~ switch_abbreviation(., "directions", "long-to-short")),
@@ -188,7 +188,7 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
       mutate({{ input_column }} := na_if({{ input_column }}, "")) |>
       mutate({{ input_column }} := str_replace_names({{ input_column }}, special_street_names$regex, special_street_names$output)) |>
       rename("street_name" = {{ input_column }}) |>
-      unite({{ street_name }}, c("street_name", "street_suffix_2"), sep = " ", na.rm = TRUE) |>
+      unite({{ street_name }}, any_of(c("street_name", "street_suffix_2")), sep = " ", na.rm = TRUE) |>
       mutate({{ street_name }} := str_squish({{ street_name }}) |> na_if("")) |>
       arrange({{ original_row_id }}, {{ addressr_id }}) |>
       unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE)
