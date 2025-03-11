@@ -139,7 +139,7 @@ prep_address <- function(string) {
       "(\\d{2,}) (\\d-?[A-Z]|[A-Z]-?\\d|APT \\w+|APARTMENT \\w+|NUM \\d+|UNIT \\d) ([\\w\\s]+) (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE)" = "\\1 \\3 \\4 \\2 "
       )) |>
     str_remove_all(c("\\.|'")) |>
-    str_replace_all("(?<!/)\\b\\d{1,2}(?= MILE)", replace_number) |>
+    str_replace_all("(?<!/)\\b\\d{1,2}(?= MILE\\b)", replace_number) |>
     str_replace_all("(?<=\\d[A-Z]? [NSEW] )\\d{1,3}(?= (ST|AVE|DR|R(OA)?D|LN|LANE|CIR|CT|COURT|PL|WAY|BLVD|BOU|STRA|CV|COVE))", replace_ordinals) |>
     str_squish()
 }
