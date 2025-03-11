@@ -270,6 +270,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 #' @param addressr_id Unique row_id
 check_unit <- function(.data, input_column, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id) {
 
+  extra_unit <- sym("extra_unit")
   df_unit <- .data |> filter(!is.na({{ unit }}))
 
   df <- .data |> anti_join(df_unit, by = "addressr_id")
@@ -278,7 +279,6 @@ check_unit <- function(.data, input_column, unit, unit_type, special_unit, speci
 
     unit_number <- sym("unit_number")
     unit_text <- sym("unit_text")
-    extra_unit <- sym("extra_unit")
 
     #' 1. remove all non-word characters
     #' 2. extract numerics, compare with street number
@@ -293,11 +293,11 @@ check_unit <- function(.data, input_column, unit, unit_type, special_unit, speci
         {{ unit_number }} := str_remove({{ unit_number }}, "^0+"),
         {{ unit_number }} := if_else(((!is.na({{ street_number }}) & {{ unit_number }} == {{ street_number }}) | unit_number == ""), NA_character_, {{ unit_number }}),
         {{ unit_text }} := if_else(((!is.na({{ street_suffix }}) & {{ unit_text }} == {{ street_suffix }}) | (!is.na({{ building }}) & {{ unit_text }} == {{ building }})), NA_character_, {{ unit_text }}),
-        {{ extra_unit }} := if_else((!is.na({{ unit_type }}) & {{ unit_text }} == {{ unit_type }}), NA_character_, extra_unit)
+        {{ extra_unit }} := if_else((!is.na({{ unit_type }}) & {{ unit_text }} == {{ unit_type }}), NA_character_, {{ extra_unit }}, missing = NA_character_)
       ) |>
-      unite(extra_unit, any_of(c("unit", "extra_unit")), sep = "", na.rm = TRUE) |>
-      unite(unit, any_of(c("unit_number", "unit_text")), sep = "", na.rm = TRUE) |>
-      mutate(extra_unit := na_if(extra_unit, ""))
+      unite({{ extra_unit }}, any_of(c("unit", "extra_unit")), sep = "", na.rm = TRUE) |>
+      unite({{ unit }}, any_of(c("unit_number", "unit_text")), sep = "", na.rm = TRUE) |>
+      mutate({{ extra_unit }} := na_if({{ extra_unit }}, ""))
 
     df <- bind_rows(df, df_unit)
 
@@ -309,7 +309,8 @@ check_unit <- function(.data, input_column, unit, unit_type, special_unit, speci
     unite({{ unit }}, any_of(c("unit", "special_unit", "special_unit_2")), sep = " ", na.rm = TRUE) |>
     mutate({{ unit }} := switch_abbreviation({{ unit }}, "special_units", "short-to-long"),
            {{ unit }} := str_squish({{ unit }}) |> na_if(""),
-           {{ extra_unit }} := na_if({{ extra_unit }}, ""))
+           {{ extra_unit }} := na_if({{ extra_unit }}, "")
+    )
 
 }
 
