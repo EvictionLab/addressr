@@ -149,6 +149,7 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
     )
 
     df <- df |>
+      mutate({{ street_number }} := str_remove_all({{ street_number }}, "^0+")) |>
       # ordinals
       mutate({{ input_column }} := str_replace_all({{ input_column }}, "\\b\\d{1,3}[RSTN][DTH]\\b", replace_ordinals)) |>
       # street number coords
