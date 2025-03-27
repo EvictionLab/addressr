@@ -156,6 +156,7 @@ test_addresses <- tribble(
   "143 W Main Lower Unit",
 ) |>
   clean_address(address) |>
+  # clean_address(address, method = "short", separate_street_range = FALSE, separate_multi_address = FALSE) |>
   janitor::remove_empty("cols")
 
 usethis::use_data(test_addresses, overwrite = TRUE)

@@ -1,15 +1,16 @@
 #' Clean Addresses
 #'
 #' @param .data A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).
-#' @param dataset The dataset to clean. Either "default", "quick", or "default_db"
+#' @param method The method to clean. Either "default", "quick", or "default_db"
 #' @param input_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
 #' @param separate_street_range Should street numbers with a range be pivoted into individual rows?
+#' @param separate_multi_address Should rows with multiple addresses be pivoted into individual rows?
 #'
 #' @return An object of the same type as .data, with the following properties:
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
 #'    * New column containing the extracted strings.
 #' @export
-clean_address <- function(.data, input_column, dataset = "default", separate_street_range = TRUE) {
+clean_address <- function(.data, input_column, method = "default", separate_street_range = TRUE, separate_multi_address = TRUE) {
 
   # column names. these prevent global variable warnings
   addressr_id <- sym("addressr_id")
@@ -36,7 +37,7 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
 
   v_clean_address <- c("po_box", "street_number_coords", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction")
 
-  if (dataset == "quick") {
+  if (method == "quick") {
 
     tic("quick clean address.")
 
@@ -69,7 +70,7 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
 
   }
 
-  else if (dataset == "default") {
+  else if (method %in% c("default", "short")) {
 
     tic("total clean time")
 
@@ -91,11 +92,15 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
     df <- df |> check_highways({{ input_column }})
 
     # step 2: separate out multiple addresses
-    tic("separate multiple addresses")
     all_suffix_regex <- str_collapse_bound(unique(c(all_street_suffixes$long, all_street_suffixes$short)))
 
-    df <- df |> check_multi_address({{ input_column }}, addressr_id, all_suffix_regex)
-    toc()
+    if (separate_multi_address) {
+
+      tic("separate multiple addresses")
+      df <- df |> check_multi_address({{ input_column }}, addressr_id, all_suffix_regex)
+      toc()
+
+    }
 
     # step 2.5: find PO Boxes (maybe add other weird addresses here (highways, 13 colony mall))
     tic("extract address parts")
@@ -168,7 +173,9 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
     if (separate_street_range) {
       df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
     } else {
-      df <- df |> mutate(across(c(street_number_multi, street_number), str_squish))
+      df <- df |> mutate(
+        {{ street_number_multi }} := str_remove_all({{ street_number_multi }}, "\\s+(?=\\-)|(?<=\\-)\\s+"),
+        across(c(street_number_multi, street_number), str_squish))
     }
 
     df <- df |> check_unit({{ input_column }}, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id)
@@ -196,9 +203,25 @@ clean_address <- function(.data, input_column, dataset = "default", separate_str
 
     toc()
 
+    if (method == "short") {
+
+      df_names <- names(.data)
+      df_names <- c(df_names, "raw_address", "clean_address", "short_address", "unit", "extra")
+      v_clean_address <- c(v_clean_address, "po_box")
+
+      df <- df |>
+        unite(street_number, c(starts_with("street_number")), na.rm = TRUE, sep = " ") |>
+        unite("short_address", c(street_number, street_name, po_box), na.rm = TRUE, sep = " ", remove = FALSE) |>
+        unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE) |>
+        unite("extra", starts_with("extra_"), sep = " ", remove = FALSE, na.rm = TRUE) |>
+        mutate(across(c("raw_address", "short_address", "unit", "extra"), ~ str_squish(.) |> na_if(""))) |>
+        select(any_of(df_names))
+
+    }
+
     df
 
-  } else if (dataset == "default_db") {
+  } else if (method == "default_db") {
 
     df <- .data |>
       extract_remove_squish_db({{ input_column }}, "street_number_fraction", "street_number_fraction") |>

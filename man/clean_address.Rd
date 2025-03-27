@@ -7,8 +7,9 @@
 clean_address(
   .data,
   input_column,
-  dataset = "default",
-  separate_street_range = TRUE
+  method = "default",
+  separate_street_range = TRUE,
+  separate_multi_address = TRUE
 )
 }
 \arguments{
@@ -16,9 +17,11 @@ clean_address(
 
 \item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
 
-\item{dataset}{The dataset to clean. Either "default", "quick", or "default_db"}
+\item{method}{The method to clean. Either "default", "quick", or "default_db"}
 
 \item{separate_street_range}{Should street numbers with a range be pivoted into individual rows?}
+
+\item{separate_multi_address}{Should rows with multiple addresses be pivoted into individual rows?}
 }
 \value{
 An object of the same type as .data, with the following properties:
