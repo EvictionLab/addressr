@@ -17,7 +17,7 @@ address_regex <- tribble(
   "street_number_fraction", "[1-9]/\\d\\b",
   "street_name_fraction", "(?<=\\d ([NSEW] )?)\\d{1,2} (\\d{1,2}|(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN))[ /](\\d{1,2}(THS?)?|(HALF|FOURTH|EIGHTH|SIXTEENTH)S?)(?= (\\d{1,3}[SNRT][TDH] )?(ST|AV|MILE\\b))",
   "street_number_coords", "(\\b[NSEW]\\s?\\d+\\W?[NSEW]\\s?\\d+)|(\\d{3,}\\s?[NSEW]\\s?\\d{3,}\\b)|(\\b[NSEW]\\s?\\d{3,}\\b(?!$))",
-  "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|(^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b(?! (STREET|AVENUE)))",
+  "building", "^\\d+[A-Z]\\b|^[A-Z]\\d+\\b|(^(A|B|C|D|F|G|H|I|J|K|L|M|P|Q|R|T|U|V|X|Y|Z)\\b(?! (ST(REET|\\b)|AVE(NUE|\\b))))",
   "po_box", "\\b((P( )?O )?BOX \\d+|P( )?O BOX ?\\w+)",
   "dr_king", "((DR|DOCTOR)(\\W+)?)?M(ARTIN)?(\\W+)?L(UTHER)?(\\W+)?K(ING)?(\\W+(JR|JUNIOR))?",
   "special_units_regex", "\\b((UP+[ER]+|LO*WE*R*|FR+O*N*T|REAR|B[AC]+K)\\W?)+(N[ORTH]+|S(O|[OUTH]{2,})?|E[AST]+|W[EST]+)*$"
