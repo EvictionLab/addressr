@@ -3,10 +3,12 @@
 test_addresses <- tribble(
   ~address,
   "123 Main St",
+  "00123 Main St",
   "123 Miles St",
   "123 Main St Parkway",
   "PO BOX 123",
   "123 Park Place Market St",
+  "156 1/2 Main St",
   # directions
   "123 N Main St",
   "123 East Main St",
@@ -34,7 +36,7 @@ test_addresses <- tribble(
   "123 8 1/2 Mile Rd",
   "123 8TH St SOUTH TRL #45",
   # other tricky streets
-  "100 F Street",
+  "100 F Ave",
   "Main St #58",
   "123 Andie St",
   "123 Orchard St",
@@ -157,7 +159,7 @@ test_addresses <- tribble(
   "143 W Main Lower Unit",
 ) |>
   clean_address(address) |>
-  # clean_address(address, method = "short", separate_street_range = FALSE, separate_multi_address = FALSE) |>
+  # clean_address(address, output = c("clean_address", "short_address", "street_number", "unit", "extra"), separate_street_range = FALSE, separate_multi_address = FALSE) |>
   janitor::remove_empty("cols")
 
 usethis::use_data(test_addresses, overwrite = TRUE)

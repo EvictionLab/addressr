@@ -27,6 +27,7 @@ special_street_names <- tribble(
   ~regex, ~output,
   # "((DR|DOCTOR)\\W*)?M(ARTIN)?\\W*L(UTHER)?\\W*K(ING)?(\\W+(JR|JUNIOR))?", "MARTIN LUTHER KING",
   "MT", "MOUNT",
+  "FT", "FORT",
   "^ST(?!$)", "SAINT",
   "^(O)\\W([A-Z]{3,})", "\\1\\2",
   "^(MC)\\W([A-Z]{3,})", "\\1\\2",
