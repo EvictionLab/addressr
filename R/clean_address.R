@@ -28,7 +28,7 @@
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
 #'    * New column containing the extracted strings.
 #' @export
-clean_address <- function(.data, address_column, method = "default", output = "everything", separate_street_range = TRUE, separate_multi_address = TRUE) {
+clean_address <- function(.data, address_column, method = "default", output = "everything", separate_street_range = FALSE, separate_multi_address = FALSE) {
 
   # column names. these prevent global variable warnings
   input_column <- sym("input_column")

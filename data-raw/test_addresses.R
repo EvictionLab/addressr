@@ -159,7 +159,7 @@ test_addresses <- tribble(
   "1200 Main View Ave #16",
   "143 W Main Lower Unit",
 ) |>
-  clean_address(address) |>
+  clean_address(address, separate_street_range = TRUE, separate_multi_address = TRUE) |>
   # clean_address(address, output = c("clean_address", "short_address", "street_number", "unit", "extra"), separate_street_range = FALSE, separate_multi_address = FALSE) |>
   janitor::remove_empty("cols")
 
