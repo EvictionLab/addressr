@@ -20,7 +20,7 @@ check_unit(
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).}
 
-\item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
+\item{input_column}{address column}
 
 \item{unit}{The unit number or letter}
 
