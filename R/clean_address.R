@@ -21,8 +21,8 @@
 #'    * "building"
 #'    * "extra": Extra characters which were not sorted into any column. Can also be broken into "extra_front", "extra_back", and "extra_unit"
 #' @param address_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
-#' @param separate_street_range Should street numbers with multiple numbers be pivoted into individual rows? Default is TRUE.
-#' @param separate_multi_address Should rows with multiple addresses be pivoted into individual rows? Default is TRUE.
+#' @param separate_street_range Should street numbers with multiple numbers be pivoted into individual rows? Default is FALSE
+#' @param separate_multi_address Should rows with multiple addresses be pivoted into individual rows? Default is FALSE
 #'
 #' @return An object of the same type as .data, with the following properties:
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.

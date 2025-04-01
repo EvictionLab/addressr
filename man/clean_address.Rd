@@ -9,8 +9,8 @@ clean_address(
   address_column,
   method = "default",
   output = "everything",
-  separate_street_range = TRUE,
-  separate_multi_address = TRUE
+  separate_street_range = FALSE,
+  separate_multi_address = FALSE
 )
 }
 \arguments{
@@ -43,9 +43,9 @@ And/or individual address components:
 \item "extra": Extra characters which were not sorted into any column. Can also be broken into "extra_front", "extra_back", and "extra_unit"
 }}
 
-\item{separate_street_range}{Should street numbers with multiple numbers be pivoted into individual rows? Default is TRUE.}
+\item{separate_street_range}{Should street numbers with multiple numbers be pivoted into individual rows? Default is FALSE}
 
-\item{separate_multi_address}{Should rows with multiple addresses be pivoted into individual rows? Default is TRUE.}
+\item{separate_multi_address}{Should rows with multiple addresses be pivoted into individual rows? Default is FALSE}
 }
 \value{
 An object of the same type as .data, with the following properties:
