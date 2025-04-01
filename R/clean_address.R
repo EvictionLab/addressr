@@ -21,8 +21,8 @@
 #'    * "building"
 #'    * "extra": Extra characters which were not sorted into any column. Can also be broken into "extra_front", "extra_back", and "extra_unit"
 #' @param address_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
-#' @param separate_street_range Should street numbers with multiple numbers be pivoted into individual rows?
-#' @param separate_multi_address Should rows with multiple addresses be pivoted into individual rows?
+#' @param separate_street_range Should street numbers with multiple numbers be pivoted into individual rows? Default is TRUE.
+#' @param separate_multi_address Should rows with multiple addresses be pivoted into individual rows? Default is TRUE.
 #'
 #' @return An object of the same type as .data, with the following properties:
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
@@ -106,8 +106,13 @@ clean_address <- function(.data, address_column, method = "default", output = "e
     df <- df |>
       mutate({{ original_row_id }} := row_number(),
              {{ addressr_id }} := as.character({{ original_row_id }}),
-             .before = {{ input_column }}) |>
+             .before = {{ input_column }})
+
+    df_null <- df |> filter(is.na({{ input_column }}))
+    df <- df |>
+      filter(!is.na({{ input_column }})) |>
       mutate({{ input_column }} := prep_address({{ input_column }}))
+
     toc()
 
     # step 1.5: check issue-causing street names with numbers
@@ -219,6 +224,10 @@ clean_address <- function(.data, address_column, method = "default", output = "e
     # add back P.O. Boxes
     if (nrow(df_box) != 0) {
       df <- bind_rows(df, df_box)
+    }
+
+    if (nrow(df_null) != 0) {
+      df <- bind_rows(df, df_null)
     }
 
     df <- df |>

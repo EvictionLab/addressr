@@ -43,9 +43,9 @@ And/or individual address components:
 \item "extra": Extra characters which were not sorted into any column. Can also be broken into "extra_front", "extra_back", and "extra_unit"
 }}
 
-\item{separate_street_range}{Should street numbers with multiple numbers be pivoted into individual rows?}
+\item{separate_street_range}{Should street numbers with multiple numbers be pivoted into individual rows? Default is TRUE.}
 
-\item{separate_multi_address}{Should rows with multiple addresses be pivoted into individual rows?}
+\item{separate_multi_address}{Should rows with multiple addresses be pivoted into individual rows? Default is TRUE.}
 }
 \value{
 An object of the same type as .data, with the following properties:
