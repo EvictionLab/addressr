@@ -1,18 +1,37 @@
 #' Clean Addresses
 #'
 #' @param .data A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).
-#' @param method The method to clean. Either "default", "quick", or "default_db"
-#' @param input_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
-#' @param separate_street_range Should street numbers with a range be pivoted into individual rows?
+#' @param method The method for address cleaning. Either `"default"`, `"quick"`, or `"default_db"`
+#' @param output Address columns to output. Defaults to "everything", which outputs all original columns in the dataset, row id columns, all address components, and the "clean_address". Can also provide a character vector of columns, including the following aggregate columns:
+#'    * "clean_address": street number + pre direction + street name + street suffix + post direction
+#'    * "short_address": street number + street name
+#'
+#'    And/or individual address components:
+#'    * "po_box"
+#'    * "street_number_coords": A coordinate-style street number (N123 E456 Main St)
+#'    * "street_number": NOTE if only one column starting with "street_number" is included, all columns starting with "street_number" are united into one "street_number" column.
+#'    * "street_number_multi": Street number containing multiple numbers
+#'    * "street_number_fraction": A fraction included in the street number
+#'    * "pre_direction"
+#'    * "street_name"
+#'    * "street_suffix"
+#'    * "post_direction"
+#'    * "unit"
+#'    * "unit_type": the type of unit, such as "apt", "#", etc.
+#'    * "building"
+#'    * "extra": Extra characters which were not sorted into any column. Can also be broken into "extra_front", "extra_back", and "extra_unit"
+#' @param address_column The column from which the string should be extracted, then removed, then squished to remove extra whitespace.
+#' @param separate_street_range Should street numbers with multiple numbers be pivoted into individual rows?
 #' @param separate_multi_address Should rows with multiple addresses be pivoted into individual rows?
 #'
 #' @return An object of the same type as .data, with the following properties:
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
 #'    * New column containing the extracted strings.
 #' @export
-clean_address <- function(.data, input_column, method = "default", separate_street_range = TRUE, separate_multi_address = TRUE) {
+clean_address <- function(.data, address_column, method = "default", output = "everything", separate_street_range = TRUE, separate_multi_address = TRUE) {
 
   # column names. these prevent global variable warnings
+  input_column <- sym("input_column")
   addressr_id <- sym("addressr_id")
   clean_address <- sym("clean_address")
   raw_address <- sym("raw_address")
@@ -22,6 +41,7 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
   street_number_coords <- sym("street_number_coords")
   street_number_range <- sym("street_number_range")
   street_number_multi <- sym("street_number_multi")
+  street_number_fraction <- sym("street_number_fraction")
   all_street_suffix <- sym("all_street_suffix")
   street_suffix <- sym("street_suffix")
   street_suffix_2 <- sym("street_suffix_2")
@@ -35,14 +55,20 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
   street_name <- sym("street_name")
   po_box <- sym("po_box")
 
+  df_names <- names(.data)
+
+  df <- .data |> mutate({{ input_column }} := {{ address_column }})
+
   v_clean_address <- c("po_box", "street_number_coords", "street_number", "street_number_multi", "street_number_fraction", "pre_direction", "street_name", "street_suffix", "post_direction")
+
+  if (!method %in% c("quick", "default", "default_db")) stop("Invalid method argument")
 
   if (method == "quick") {
 
     tic("quick clean address.")
 
-    df <- .data |>
-      mutate({{ raw_address }} := {{ input_column }}, {{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
+    df <- df |>
+      mutate({{ addressr_id }} := row_number(), .before = {{ input_column }}) |>
       mutate({{ input_column }} := str_to_upper({{ input_column }})) |>
       extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
       extract_remove_squish({{ input_column }}, "extra_front", "^([A-Z\\W]+ )+(?=\\d+)") |>
@@ -70,16 +96,15 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
 
   }
 
-  else if (method %in% c("default", "short")) {
+  else if (method == "default") {
 
     tic("total clean time")
 
     # step 1: preserve original input
     tic("preserve original data")
     original_row_id <- sym("original_row_id")
-    df <- .data |>
-      mutate({{ raw_address }} := {{ input_column }},
-             {{ original_row_id }} := row_number(),
+    df <- df |>
+      mutate({{ original_row_id }} := row_number(),
              {{ addressr_id }} := as.character({{ original_row_id }}),
              .before = {{ input_column }}) |>
       mutate({{ input_column }} := prep_address({{ input_column }}))
@@ -149,7 +174,7 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
     )
 
     df <- df |>
-      mutate({{ street_number }} := str_remove_all({{ street_number }}, "^0+")) |>
+      mutate(across(c({{ street_number }}, {{ street_number_multi}}), ~ str_remove_all(., "^0+"))) |>
       # ordinals
       mutate({{ input_column }} := str_replace_all({{ input_column }}, "\\b\\d{1,3}[RSTN][DTH]\\b", replace_ordinals)) |>
       # street number coords
@@ -172,11 +197,15 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
     tic("check street numbers, units, and buildings")
 
     if (separate_street_range) {
+
       df <- df |> check_street_range(street_number_multi, street_number, addressr_id, building)
+
     } else {
+
       df <- df |> mutate(
         {{ street_number_multi }} := str_remove_all({{ street_number_multi }}, "\\s+(?=\\-)|(?<=\\-)\\s+"),
         across(c(street_number_multi, street_number), str_squish))
+
     }
 
     df <- df |> check_unit({{ input_column }}, unit, unit_type, special_unit, special_unit_2, street_number, street_suffix, building, addressr_id)
@@ -204,22 +233,6 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
 
     toc()
 
-    if (method == "short") {
-
-      df_names <- names(.data)
-      df_names <- c(df_names, "raw_address", "clean_address", "short_address", "unit", "extra")
-      v_clean_address <- c(v_clean_address, "po_box")
-
-      df <- df |>
-        unite(street_number, c(starts_with("street_number")), na.rm = TRUE, sep = " ") |>
-        unite("short_address", c(street_number, street_name, po_box), na.rm = TRUE, sep = " ", remove = FALSE) |>
-        unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE) |>
-        unite("extra", starts_with("extra_"), sep = " ", remove = FALSE, na.rm = TRUE) |>
-        mutate(across(c("raw_address", "short_address", "unit", "extra"), ~ str_squish(.) |> na_if(""))) |>
-        select(any_of(df_names))
-
-    }
-
     df
 
   } else if (method == "default_db") {
@@ -240,5 +253,47 @@ clean_address <- function(.data, input_column, method = "default", separate_stre
       switch_abbreviation_db({{ input_column }}, "ordinal", "short-to-long")
 
   }
+
+  # part 3: output
+  full_output <- str_flatten_comma(output)
+
+  if (nrow(.data) != nrow(df)) df_names <- c(df_names, "original_row_id", "addressr_id")
+
+  if (length(output) == 1) {
+
+    if (output == "everything") df_names <- c(df_names, "clean_address", v_clean_address, "building", "unit_type", "unit", "extra_front", "extra_back", "extra_unit")
+
+  } else {
+
+    if ("short_address" %in% output) {
+
+      df <- df |>
+        unite(street_number, any_of(c("street_number_multi", "street_number_coords", "street_number_range", "street_number")), na.rm = TRUE, sep = " ") |>
+        unite("short_address", c(street_number, street_name, po_box), na.rm = TRUE, sep = " ", remove = FALSE) |>
+        mutate(across(c("short_address"), ~ str_squish(.) |> na_if("")))
+
+    }
+
+    if ("extra" %in% output) {
+
+      df <- df |>
+        unite("extra", any_of(starts_with("extra_")), sep = " ", remove = FALSE, na.rm = TRUE) |>
+        mutate(across(c("extra"), ~ str_squish(.) |> na_if("")))
+
+    }
+
+    if ("street_number" %in% output & str_count(full_output, "street_number") == 1) {
+
+      df <- df |>
+        unite(street_number, any_of(c("street_number_multi", "street_number_coords", "street_number_range", "street_number")), na.rm = TRUE, sep = " ") |>
+        mutate(across(c("street_number"), ~ str_squish(.) |> na_if("")))
+
+    }
+
+    df_names <- c(df_names, output)
+
+  }
+
+  df |> select(any_of(df_names))
 
 }

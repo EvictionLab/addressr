@@ -6,8 +6,9 @@
 \usage{
 clean_address(
   .data,
-  input_column,
+  address_column,
   method = "default",
+  output = "everything",
   separate_street_range = TRUE,
   separate_multi_address = TRUE
 )
@@ -15,11 +16,34 @@ clean_address(
 \arguments{
 \item{.data}{A data frame, data frame extension (e.g. a tibble), or a lazy data frame (e.g. from dbplyr or dtplyr).}
 
-\item{input_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
+\item{address_column}{The column from which the string should be extracted, then removed, then squished to remove extra whitespace.}
 
-\item{method}{The method to clean. Either "default", "quick", or "default_db"}
+\item{method}{The method for address cleaning. Either \code{"default"}, \code{"quick"}, or \code{"default_db"}}
 
-\item{separate_street_range}{Should street numbers with a range be pivoted into individual rows?}
+\item{output}{Address columns to output. Defaults to "everything", which outputs all original columns in the dataset, row id columns, all address components, and the "clean_address". Can also provide a character vector of columns, including the following aggregate columns:
+\itemize{
+\item "clean_address": street number + pre direction + street name + street suffix + post direction
+\item "short_address": street number + street name
+}
+
+And/or individual address components:
+\itemize{
+\item "po_box"
+\item "street_number_coords": A coordinate-style street number (N123 E456 Main St)
+\item "street_number": NOTE if only one column starting with "street_number" is included, all columns starting with "street_number" are united into one "street_number" column.
+\item "street_number_multi": Street number containing multiple numbers
+\item "street_number_fraction": A fraction included in the street number
+\item "pre_direction"
+\item "street_name"
+\item "street_suffix"
+\item "post_direction"
+\item "unit"
+\item "unit_type": the type of unit, such as "apt", "#", etc.
+\item "building"
+\item "extra": Extra characters which were not sorted into any column. Can also be broken into "extra_front", "extra_back", and "extra_unit"
+}}
+
+\item{separate_street_range}{Should street numbers with multiple numbers be pivoted into individual rows?}
 
 \item{separate_multi_address}{Should rows with multiple addresses be pivoted into individual rows?}
 }

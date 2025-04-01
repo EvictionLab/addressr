@@ -260,6 +260,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
 
 #' Check the unit
 #' @inheritParams clean_address
+#' @param input_column address column
 #' @param unit The unit number or letter
 #' @param unit_type The type of unit (apt, #, etc)
 #' @param street_number The street number (<123> N Main St)
