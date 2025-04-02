@@ -173,6 +173,7 @@ check_street_range <- function(.data, street_number_multi, street_number, addres
                street_number_n > 2 ~ "ready",
                street_number_min == street_number_max ~ "ready",
                street_number_n == 2 & (street_number_diff == 2 | !is.na(street_number_and)) ~ "ready",
+               street_number_n == 2 & street_number_diff > 2 & street_number_diff > 20 ~ "ready",
                street_number_n == 2 & street_number_diff > 2 & street_number_diff <= 20 ~ "seq_along",
                .default = "error"
              ),

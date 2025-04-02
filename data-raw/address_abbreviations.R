@@ -66,10 +66,10 @@ street_suffix_raw <- read_csv("data-raw/usps-street-suffix.csv")
 
 official_street_suffixes <- street_suffix_raw |>
   select(short = 3, long = 1) |> distinct() |>
-  filter(short != long) |>
+  filter(!(short %in% c("PARK", "WALK", "SPUR") & long %in% c("PARKS", "WALKS", "SPURS"))) |>
   mutate(type = "official_street_suffixes")
 
-common_suffixes <- c("DR", "LN", "LANE", "AVE", "RD", "ST", "CIR", "CT", "PL", "WAY", "BLVD", "STRA", "CV")
+common_suffixes <- c("DR", "LN", "AVE", "RD", "ST", "CIR", "CT", "PL", "WAY", "BLVD", "STRA", "CV")
 most_common_suffixes <- official_street_suffixes |>
   filter(short %in% common_suffixes)
 
@@ -77,7 +77,9 @@ all_street_suffixes_1 <- street_suffix_raw |>
   pivot_longer(1:2, names_to = NULL, values_to = "value") |>
   distinct() |>
   rename(short = 1, long = 2) |>
-  filter(short != long & short != "HWY") |>
+  filter(short != "HWY" & !(short %in% c("PARK", "WALK", "SPUR") & long %in% c("PARKS", "WALKS", "SPURS"))
+         # & !(short == long & str_length(long) == 2)
+         ) |>
   mutate(type = "all_street_suffixes")
 
 # manual common fixes. short = official abbreviation, long = manual abbr
@@ -93,7 +95,7 @@ all_street_suffixes_2 <- tribble(
   "EXPY", "EXPWY",
   "IS", "ISLD",
   # "HWY", "HY",
-  "LANE", "LA",
+  "LN", "LA",
   "PKWY", "PY",
   "PKWY", "PARK WAY",
   "TER", "TE",
