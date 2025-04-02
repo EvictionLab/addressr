@@ -268,9 +268,9 @@ clean_address <- function(.data, address_column, method = "default", output = "e
 
   if (nrow(.data) != nrow(df)) df_names <- c(df_names, "original_row_id", "addressr_id")
 
-  if (length(output) == 1) {
+  if (length(output) == 1 & output == "everything") {
 
-    if (output == "everything") df_names <- c(df_names, "clean_address", v_clean_address, "building", "unit_type", "unit", "extra_front", "extra_back", "extra_unit")
+    df_names <- c(df_names, "clean_address", v_clean_address, "building", "unit_type", "unit", "extra_front", "extra_back", "extra_unit")
 
   } else {
 
