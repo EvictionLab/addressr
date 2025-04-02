@@ -4,6 +4,7 @@ test_addresses <- tribble(
   ~address,
   NA,
   "123 Main St",
+  "123 Main Way",
   "00123 Main St",
   "123 Miles St",
   "123 Main St Parkway",
