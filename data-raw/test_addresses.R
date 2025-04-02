@@ -105,6 +105,7 @@ test_addresses <- tribble(
   "123 and 127 East Main St 123-A",
   "123, 27 East Main St 123-A",
   # multi-address: number range
+  "10-41 Main Circle",
   "123-125 N Street Rd",
   "123-125 N Main St Apt 32",
   "123 - 123 N Main St Apt 32",
