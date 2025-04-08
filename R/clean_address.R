@@ -268,7 +268,7 @@ clean_address <- function(.data, address_column, method = "default", output = "e
 
   if (nrow(.data) != nrow(df)) df_names <- c(df_names, "original_row_id", "addressr_id")
 
-  if (length(output) == 1 & output == "everything") {
+  if (length(output) == 1 & str_detect(full_output, "everything")) {
 
     df_names <- c(df_names, "clean_address", v_clean_address, "building", "unit_type", "unit", "extra_front", "extra_back", "extra_unit")
 
@@ -278,7 +278,7 @@ clean_address <- function(.data, address_column, method = "default", output = "e
 
       df <- df |>
         unite(street_number, any_of(c("street_number_multi", "street_number_coords", "street_number_range", "street_number")), na.rm = TRUE, sep = " ") |>
-        unite("short_address", c(street_number, street_name, po_box), na.rm = TRUE, sep = " ", remove = FALSE) |>
+        unite("short_address", any_of(c("street_number", "street_name", "po_box")), na.rm = TRUE, sep = " ", remove = FALSE) |>
         mutate(across(c("short_address"), ~ str_squish(.) |> na_if("")))
 
     }
