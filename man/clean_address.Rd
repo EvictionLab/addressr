@@ -57,3 +57,14 @@ An object of the same type as .data, with the following properties:
 \description{
 Clean Addresses
 }
+\examples{
+address_sample <- sample(test_addresses, 10)
+
+address_sample |> clean_address(address)
+
+address_sample |> clean_address(address, output = "short_address")
+
+address_sample |>
+  clean_address(address, output = "short_address",
+                separate_street_range = TRUE, separate_multi_address = TRUE)
+}

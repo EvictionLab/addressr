@@ -28,6 +28,16 @@
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
 #'    * New column containing the extracted strings.
 #' @export
+#' @examples
+#' address_sample <- sample(test_addresses, 10)
+#'
+#' address_sample |> clean_address(address)
+#'
+#' address_sample |> clean_address(address, output = "short_address")
+#'
+#' address_sample |>
+#'   clean_address(address, output = "short_address",
+#'                 separate_street_range = TRUE, separate_multi_address = TRUE)
 clean_address <- function(.data, address_column, method = "default", output = "everything", separate_street_range = FALSE, separate_multi_address = FALSE) {
 
   # column names. these prevent global variable warnings
