@@ -4,9 +4,9 @@
 \name{addressr-package}
 \alias{addressr}
 \alias{addressr-package}
-\title{addressr: Clean Addresses}
+\title{addressr: Clean and Standardize Addresses}
 \description{
-What the package does (one paragraph).
+A package to simplify address cleaning.
 }
 \author{
 \strong{Maintainer}: Sarah Johnson \email{sarah.johnson@princeton.edu}
