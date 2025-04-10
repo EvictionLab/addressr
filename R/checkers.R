@@ -3,6 +3,8 @@
 #' @param pattern The string to be extracted and removed.
 #'
 #' @return A string to use in pattern matching.
+#'
+#' @export
 check_pattern <- function(pattern) {
 
   pat <- pattern
