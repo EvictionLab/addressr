@@ -35,14 +35,15 @@ Addresses can be difficult to work with and messy in many different ways.
 
 Here is an example of a relatively clean table:
 
-```{r dfExample}
+```{r message=FALSE}
+library(dplyr)
+
 address_table <- dplyr::tribble(
   ~address, ~city, ~state,
   "456 Jersey Avenue #102", "Montclair", "NJ",
   "123-125 N Street Rd", "Cincinnati", "OH",
-  "928-928 S Montgomery Ave 1500-1502 1550 Ptree Rd", "Atlanta", "GA",
-  "789 Pirate Cv East", "Memphis", "TN",
-  "3548 1ST ST FL 1", "St. Louis", "MO"
+  "789 Pirate Cv East DBA ELAB LLC", "Memphis", "TN",
+  "3548 1ST ST FL 1", "St. Louis", "MO",
 )
 ```
 
@@ -52,33 +53,48 @@ The `clean_address()` function streamlines address cleaning and outputs data int
 
 ```{r message=FALSE}
 library(addressr)
-library(dplyr)
 
-cleaned_addresses <- address_table |> clean_address(address)
+cleaned_addresses <- address_table |> clean_address(address) |> janitor::remove_empty("cols")
 
-cleaned_addresses |> janitor::remove_empty("cols")
+cleaned_addresses
+```
+
+By default, the function returns all address components. You can also select the output:
+
+```{r}
+address_table |> clean_address(address, output = c("clean_address", "short_address", "street_number", "unit", "extra"))
+```
+
+`clean_address` will return the street number, pre-direction, street name, street suffix and post-direction. `short_address` will return the street number and street name.
+
+The package can also separate rows with a street range or multiple addresses:
+
+```{r}
+address_table <- address_table |> 
+  add_row(address = "928-928 S Montgomery Ave 1500 Jefferson Rd", city = "New York", state = "NY") |> 
+  add_row(address = "1500-1502 1550 Ptree Rd", city = "Atlanta", state = "GA")
+
+address_table |> clean_address(address, separate_street_range = TRUE, separate_multi_address = TRUE)
 ```
 
 If there is a common pattern that is not removed with the function, you can use `extract_remove_squish()`, to pre-clean the data. 
 
 ```{r, message=FALSE}
 address_table |> 
-  add_row(address = "246 S Bend St Unit 530 3 Bedroom", 
-          city = "Princeton", 
-          state = "NJ") |> 
+  add_row(address = "246 S Bend St Unit 530 3 Bedroom") |> 
   extract_remove_squish(address, other, "\\d Bedroom")
 ```
 
-To switch a column from the abbreviated spelling to the long format, there are two functions:
+To switch a column from the abbreviated spelling to the long format, there are two functions: `switch_abbreviation` and `str_replace_names`
 
 - `switch_abbreviation()` for abbreviations included in the `address_abbreviations` dataset: `r stringr::str_flatten_comma((unique(address_abbreviations$type)), last = ", and ")`.
   - `all_street_suffixes` has a one-to-many relationship and should only be used `long-to-short` to standardize spellings into the same official abbreviation (AV, AVE, AVN to AVE)
   - `official_street_suffixes` has a one-to-one relationship between short and long spellings. It can be used either `short-to-long` or `long-to-short` (assuming all endings are in the official format).
 
 ```{r}
-cleaned_addresses |> 
+address_table |> 
+  clean_address(address) |> 
   mutate(
-    post_direction_long = switch_abbreviation(post_direction, "directions", "short-to-long"),
     street_suffix_short = switch_abbreviation(street_suffix, "official_street_suffixes", "long-to-short"),
     .keep = "used"
     )

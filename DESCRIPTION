@@ -1,9 +1,9 @@
 Package: addressr
-Title: Clean Addresses
+Title: Clean and Standardize Addresses
 Version: 0.0.0.9016
 Authors@R: 
     person("Sarah", "Johnson", , "sarah.johnson@princeton.edu", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: A package to simplify address cleaning.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

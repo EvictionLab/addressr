@@ -28,6 +28,16 @@
 #'    * A modified original column, from which the pattern was removed and whitespace was trimmed.
 #'    * New column containing the extracted strings.
 #' @export
+#' @examples
+#' address_sample <- sample(test_addresses, 10)
+#'
+#' address_sample |> clean_address(address)
+#'
+#' address_sample |> clean_address(address, output = "short_address")
+#'
+#' address_sample |>
+#'   clean_address(address, output = "short_address",
+#'                 separate_street_range = TRUE, separate_multi_address = TRUE)
 clean_address <- function(.data, address_column, method = "default", output = "everything", separate_street_range = FALSE, separate_multi_address = FALSE) {
 
   # column names. these prevent global variable warnings
@@ -268,7 +278,7 @@ clean_address <- function(.data, address_column, method = "default", output = "e
 
   if (nrow(.data) != nrow(df)) df_names <- c(df_names, "original_row_id", "addressr_id")
 
-  if (length(output) == 1 & output == "everything") {
+  if (length(output) == 1 & str_detect(full_output, "everything")) {
 
     df_names <- c(df_names, "clean_address", v_clean_address, "building", "unit_type", "unit", "extra_front", "extra_back", "extra_unit")
 
@@ -278,7 +288,7 @@ clean_address <- function(.data, address_column, method = "default", output = "e
 
       df <- df |>
         unite(street_number, any_of(c("street_number_multi", "street_number_coords", "street_number_range", "street_number")), na.rm = TRUE, sep = " ") |>
-        unite("short_address", c(street_number, street_name, po_box), na.rm = TRUE, sep = " ", remove = FALSE) |>
+        unite("short_address", any_of(c("street_number", "street_name", "po_box")), na.rm = TRUE, sep = " ", remove = FALSE) |>
         mutate(across(c("short_address"), ~ str_squish(.) |> na_if("")))
 
     }
