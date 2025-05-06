@@ -69,7 +69,7 @@ official_street_suffixes <- street_suffix_raw |>
   filter(!(short %in% c("PARK", "WALK", "SPUR") & long %in% c("PARKS", "WALKS", "SPURS"))) |>
   mutate(type = "official_street_suffixes")
 
-common_suffixes <- c("DR", "LN", "AVE", "RD", "ST", "CIR", "CT", "PL", "WAY", "BLVD", "STRA", "CV")
+common_suffixes <- c("DR", "LN", "AVE", "RD", "ST", "CIR", "CT", "PL", "WAY", "BLVD", "STRA", "CV", "LOOP")
 most_common_suffixes <- official_street_suffixes |>
   filter(short %in% common_suffixes)
 
