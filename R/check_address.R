@@ -18,7 +18,13 @@
 check_address <- function(.data, address_column, row_id = "row_id", city = NULL, state = NULL, zip_code = NULL) {
 
   checked_address <- sym("checked_address")
-  df <- .data |> mutate({{ checked_address }} := {{ address_column }})
+  checked_state <- sym("checked_state")
+
+  df <- .data |>
+    mutate(
+      {{ checked_address }} := {{ address_column }},
+      {{ checked_state }} := {{ state }}
+      )
 
   if (row_id == "row_id") {
 
@@ -26,7 +32,7 @@ check_address <- function(.data, address_column, row_id = "row_id", city = NULL,
 
   }
 
-  # error 1: NA address ----
+  # --------------------------------------------------- error 1: NA address ----
   error_1 <- sym("error_1")
   error_na <- df |>
     filter(is.na({{ address_column }}) | {{ address_column }} %in% c("N\\W?A", "NULL", "(MISSING|NONE|NO|UNKNOWN) ADDRESS"))
@@ -47,7 +53,34 @@ check_address <- function(.data, address_column, row_id = "row_id", city = NULL,
 
   }
 
-  # output ----
+
+  if (!is.null(checked_state)) {
+    # ------------------------------------------------------ error 2: state ----
+    error_2 <- sym("error_2")
+
+    the_state_names <- c(state.name, "DISTRICT OF COLUMBIA") |> str_to_upper()
+    the_state_abbr <- c(state.abb, "DC")
+
+    df <- df |>
+      mutate(
+        {{ checked_state }} := str_to_upper({{ checked_state }}) |> str_remove_all("\\."),
+        {{ checked_state }} := str_replace_names({{ checked_state }}, the_state_names, the_state_abbr),
+        {{ error_2 }} := case_when(
+          is.na(checked_state) ~ "missing_state",
+          !{{ checked_state }} %in% the_state_abbr ~ "unknown_state",
+          .default = NA_character_
+        )
+      )
+
+    n_error_state_na <- df |> filter(error_2 == "missing_state") |> nrow()
+    n_error_state_idk <- df |> filter(error_2 == "unknown_state") |> nrow()
+
+    if (n_error_state_na != 0) message(str_glue("missing state: {n_error_state_na}"))
+    if (n_error_state_idk != 0) message(str_glue("unknown state: {n_error_state_idk}"))
+
+  }
+
+  # ---------------------------------------------------------------- output ----
   address_errors <- sym("address_errors")
 
   error_names <- names(df) |> str_subset("error_\\d")
