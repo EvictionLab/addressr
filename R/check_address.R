@@ -13,21 +13,20 @@
 #'
 #' @examples
 #' test_addresses |> check_address(address)
-#'
-#' test_addresses |> check_address(address, "addressr_id")
-check_address <- function(.data, address_column, row_id = "row_id", city = NULL, state = NULL, zip_code = NULL) {
+check_address <- function(.data, address_column, row_id = NULL, city = NULL, state = NULL, zip_code = NULL) {
 
   checked_address <- sym("checked_address")
-  checked_state <- sym("checked_state")
+  row_id <- enquo(row_id)
+  state <- enquo(state)
+  city <- enquo(city)
+  zip_code <- enquo(zip_code)
 
-  df <- .data |>
-    mutate(
-      {{ checked_address }} := {{ address_column }},
-      {{ checked_state }} := {{ state }}
-      )
+  df <- .data |> mutate({{ checked_address }} := {{ address_column }})
 
-  if (row_id == "row_id") {
+  if (quo_is_null(row_id)) {
 
+    row_id <- "row_id"
+    # row_id <- as_name(row_id)
     df <- df |> mutate({{ row_id }} := row_number(), .before = 1)
 
   }
@@ -48,26 +47,25 @@ check_address <- function(.data, address_column, row_id = "row_id", city = NULL,
              {{ checked_address }} := NA_character_)
 
     df <- df |>
-      anti_join(error_na, by = {{ row_id }}) |>
+      anti_join(error_na, by = row_id) |>
       bind_rows(error_na)
 
   }
 
 
-  if (!is.null(checked_state)) {
+  if (!quo_is_null(state)) {
     # ------------------------------------------------------ error 2: state ----
     error_2 <- sym("error_2")
-
-    the_state_names <- c(state.name, "DISTRICT OF COLUMBIA") |> str_to_upper()
-    the_state_abbr <- c(state.abb, "DC")
+    checked_state <- sym("checked_state")
 
     df <- df |>
       mutate(
+        {{ checked_state }} := {{ state }},
         {{ checked_state }} := str_to_upper({{ checked_state }}) |> str_remove_all("\\."),
-        {{ checked_state }} := str_replace_names({{ checked_state }}, the_state_names, the_state_abbr),
+        {{ checked_state }} := str_replace_names({{ checked_state }}, the_states$long, the_states$short),
         {{ error_2 }} := case_when(
           is.na(checked_state) ~ "missing_state",
-          !{{ checked_state }} %in% the_state_abbr ~ "unknown_state",
+          !{{ checked_state }} %in% the_states$short ~ "unknown_state",
           .default = NA_character_
         )
       )

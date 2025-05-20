@@ -89,6 +89,7 @@ all_street_suffixes_2 <- tribble(
   "BLVD", "BVD",
   "BLVD", "BV",
   "BLVD", "BLV",
+  "BLVD", "BL",
   "CIR", "CI",
   "CT", "CRT",
   "EXPY", "EX",
@@ -204,6 +205,13 @@ address_abbreviations <- bind_rows(directions, all_street_suffixes, official_str
 
 addr_abbr <- address_abbreviations
 
+the_state_names <- c(state.name, "DISTRICT OF COLUMBIA") |> str_to_upper()
+the_state_abbr <- c(state.abb, "DC")
+the_states <- tibble(
+  short = the_state_abbr,
+  long = the_state_names
+)
+
 usethis::use_data(address_abbreviations, overwrite = TRUE)
 
-usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, highways, overwrite = TRUE, internal = TRUE)
+usethis::use_data(special_street_names, most_common_suffixes, least_common_suffixes, address_regex, addr_abbr, directions, fractions, all_street_suffixes, official_street_suffixes, ordinals, unit_types, special_units, highways, the_states, overwrite = TRUE, internal = TRUE)

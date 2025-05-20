@@ -7,7 +7,7 @@
 check_address(
   .data,
   address_column,
-  row_id = "row_id",
+  row_id = NULL,
   city = NULL,
   state = NULL,
   zip_code = NULL
@@ -38,6 +38,4 @@ Check the validity of an address
 }
 \examples{
 test_addresses |> check_address(address)
-
-test_addresses |> check_address(address, "addressr_id")
 }
