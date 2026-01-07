@@ -7,8 +7,7 @@
 #' @param zip_code A column containing the zip code.
 #'
 #' @returns An object of the same type as .data, with the following properties:
-#'    * New column `checked_address` containing the recommended address.
-#'    * New column `error` containing a list of errors for the address.
+#'    * New column `address_error` containing a list of errors for the address.
 #' @export
 #'
 #' @examples
@@ -16,82 +15,146 @@
 check_address <- function(.data, address_column, row_id = NULL, city = NULL, state = NULL, zip_code = NULL) {
 
   checked_address <- sym("checked_address")
+  addressr_id <- sym("addressr_id")
   row_id <- enquo(row_id)
   state <- enquo(state)
   city <- enquo(city)
   zip_code <- enquo(zip_code)
 
   df <- .data |> mutate({{ checked_address }} := {{ address_column }})
+  n_df <- nrow(df)
+
+  message(str_glue("total rows: {n_df}"))
 
   if (quo_is_null(row_id)) {
 
     row_id <- "row_id"
-    # row_id <- as_name(row_id)
     df <- df |> mutate({{ row_id }} := row_number(), .before = 1)
 
   }
 
-  # --------------------------------------------------- error 1: NA address ----
-  error_1 <- sym("error_1")
-  error_na <- df |>
-    filter(is.na({{ address_column }}) | {{ address_column }} %in% c("N\\W?A", "NULL", "(MISSING|NONE|NO|UNKNOWN) ADDRESS"))
+  df_distinct <- df |>
+    select({{ address_column }}) |>
+    distinct()
 
-  n_error_na <- nrow(error_na)
+  n_distinct <- nrow(df_distinct)
+  message(str_glue("distinct addresses: {n_distinct}"))
 
-  if (nrow(error_na) != 0) {
+  regex_fix <- c(
+    "\\b(\\W){2,}\\b" = "\\1",
+    "([A-Z0-9]+)\\s+-\\s+([A-Z0-9]+)" = "\\1-\\2",
+    "(\\d+)\\s*,\\s*(\\d+)" = "\\1, \\2",
+    "(\\d+)\\s*(&|AND)\\s*(\\d+)" = "\\1 & \\3"
+  )
 
-    message(str_glue("missing address: {n_error_na}"))
+  df <- df |>
+    mutate({{ checked_address }} := str_to_upper({{ checked_address }}) |> str_remove_all("\\.|'") |> str_replace_all(regex_fix) |> str_squish())
 
-    error_na <- error_na |>
-      mutate({{ error_1 }} := "missing_address",
-             {{ checked_address }} := NA_character_)
-
-    df <- df |>
-      anti_join(error_na, by = row_id) |>
-      bind_rows(error_na)
-
-  }
-
-
-  if (!quo_is_null(state)) {
-    # ------------------------------------------------------ error 2: state ----
-    error_2 <- sym("error_2")
-    checked_state <- sym("checked_state")
-
-    df <- df |>
-      mutate(
-        {{ checked_state }} := {{ state }},
-        {{ checked_state }} := str_to_upper({{ checked_state }}) |> str_remove_all("\\."),
-        {{ checked_state }} := str_replace_names({{ checked_state }}, the_states$long, the_states$short),
-        {{ error_2 }} := case_when(
-          is.na(checked_state) ~ "missing_state",
-          !{{ checked_state }} %in% the_states$short ~ "unknown_state",
-          .default = NA_character_
-        )
-      )
-
-    n_error_state_na <- df |> filter(error_2 == "missing_state") |> nrow()
-    n_error_state_idk <- df |> filter(error_2 == "unknown_state") |> nrow()
-
-    if (n_error_state_na != 0) message(str_glue("missing state: {n_error_state_na}"))
-    if (n_error_state_idk != 0) message(str_glue("unknown state: {n_error_state_idk}"))
-
-  }
-
-  # ---------------------------------------------------------------- output ----
   address_errors <- sym("address_errors")
 
-  error_names <- names(df) |> str_subset("error_\\d")
+  df_na <- df |>
+    filter(is.na({{ checked_address }}) | {{ checked_address }} %in% c("N\\W?A", "NULL", "NAN", "(MISSING|NONE|NO|UNKNOWN) ADDRESS", "")) |>
+    mutate(address_errors = "na_address")
+  n_na <- nrow(df_na)
+  message(str_glue("na_address: {n_na}"))
 
-  if (length(error_names) > 0) {
+  df <- df |> anti_join(df_na, by = {{ row_id }})
 
-    df <- df |>
-      unite({{ address_errors }}, starts_with("error"), sep = "; ", na.rm = TRUE) |>
-      mutate({{ address_errors }} := str_squish({{ address_errors }}) |> na_if("")) |>
-      arrange(row_id)
+  n_errors <- sym("n_errors")
 
-  } else message("No address errors detected!")
+  regex_zip <- "\\b\\d{5}(\\-\\d{4})?\\b"
+  regex_states <- str_collapse_bound(c(the_states$long, the_states$short))
 
-  df
+  checks <- c(
+    only_state = str_glue("^({regex_states})$"),
+    only_zip_state = str_glue("^({regex_zip}),? ({regex_states})$"),
+    has_zip_state = str_glue("(({regex_zip}),? ({regex_states})|(({regex_states}) ({regex_zip})))"),
+    possible_zip = str_glue("{regex_zip}$"),
+    no_number = "^[^\\d]+$",
+    no_words = "^[^A-Z]+$",
+    no_spaces = "^[^ ]+$",
+    non_address_words = "\\b(BEDROOM|KITCHEN|BATHROOM|LAUNDRY|RENT)\\b",
+    has_punct = "[:symbol:]|[;\\?\\!\\/\\*@#\\-_\\'\\[\\]\\{\\}\\:]",
+    only_zeros = "\\b0+\\b",
+    leading_zeros = "(?<!-)\\b0+[1-9]+\\b"
+  )
+
+  check_names <- names(checks)
+  address_errors <- sym("address_errors")
+
+  check_string <- function(.data, string, pattern, error_name, row_id) {
+
+    df <- .data |> select({{ row_id }}, {{ string }}) |> filter(str_detect({{ string }}, pattern))
+    n_string <- nrow(df)
+
+    if (n_string != 0) {
+
+      message(str_glue("{error_name}: {n_string}"))
+
+      df <- df |>
+        mutate({{ address_errors }} := paste0(error_name))
+
+    }
+
+    df
+
+  }
+
+  all_checks <- purrr::map2(checks, check_names, ~ check_string(df, {{ checked_address }}, .x, .y, {{ row_id }})) |> purrr::list_rbind()
+  all_checks <- all_checks |> summarise(address_errors = str_flatten_comma(unique(address_errors), na.rm = TRUE), .by = {{ row_id }})
+
+  df <- df |> left_join(all_checks, by = {{ row_id }}) |> bind_rows(df_na)
+
+  # n_spaces <- sym("n_spaces")
+  # n_let_grps <- sym("n_let_grps")
+  # n_num_grps <- sym("n_num_grps")
+  spaceless_address <- sym("spaceless_address")
+  n_alnum_grps <- sym("n_alnum_grps")
+  first_number <- sym("first_number")
+  address_length <- sym("address_length")
+  address_pattern <- sym("address_pattern")
+
+  address_patterns <- c(
+    po_box = check_pattern("po_box"),
+    extra_front = "^([A-Z\\W]+ )+(?!\\d+\\W?[NSEW]\\s?\\d+?)",
+    building = paste0(check_pattern("building"), "|\\b\\d+-?[ABCDFGHIJKLMPQRTUVWXYZ]\\b"),
+    street_name_fraction = check_pattern("street_name_fraction"),
+    fraction = "1/2\\b",
+    number_range = "\\b\\d+-\\d+\\b",
+    number_multi = "\\b\\d+([,& ]+\\d+)+",
+    street_number = "^\\d+\\b",
+    city_state_zip = str_glue("(?<=(, |^))[A-Z ]+,? {regex_states},? {regex_zip}"),
+    street_suffix = str_remove(check_pattern("all_street_suffix"), "\\$"),
+    highway = "\\b((STATE|COUNTY|CTH?Y|U ?S|ST|CO) )?(HIGHWAY|HWY|HY)\\b",
+    zip_code = regex_zip,
+    state = regex_states,
+    ordinal = "\\b\\d+[SNRT][TDH]\\b",
+    special_units_regex = check_pattern("special_units_regex"),
+    unit_type = paste0(check_pattern("unit_type"), "|#"),
+    street_number_coords = check_pattern("street_number_coords"),
+    directions = check_pattern("direction")
+  )
+
+  address_pat_names <- str_c("{", names(address_patterns), "}")
+
+  df <- df |>
+    mutate(
+      {{ spaceless_address }} := str_remove_all({{ checked_address }}, "[^A-Z0-9]"),
+      {{ address_length }} := str_length({{ checked_address }}),
+      # {{ n_spaces }} := str_count({{ checked_address }}, "\\s"),
+      # {{ n_let_grps }} := str_count({{ checked_address }}, "\\b([A-Z]+)\\b"),
+      # {{ n_num_grps }} := str_count({{ checked_address }}, "\\b(\\d+)\\b"),
+      {{ n_alnum_grps }} := str_count({{ checked_address }}, "\\b([A-Z]+[0-9]+)|([0-9]+[A-Z]+)\\b"),
+      {{ first_number }} := str_locate({{ checked_address }}, "\\d")[, "start"],
+      {{ address_pattern }} := str_replace_names({{ checked_address }}, address_patterns, address_pat_names)
+    )
+
+  if (nrow(all_checks) == 0) {
+
+    message("No address errors detected!")
+
+  }
+
+  df |> select(-checked_address)
 
 }

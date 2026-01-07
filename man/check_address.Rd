@@ -29,8 +29,7 @@ check_address(
 \value{
 An object of the same type as .data, with the following properties:
 \itemize{
-\item New column \code{checked_address} containing the recommended address.
-\item New column \code{error} containing a list of errors for the address.
+\item New column \code{address_error} containing a list of errors for the address.
 }
 }
 \description{
