@@ -144,28 +144,31 @@ prep_address <- function(string) {
     str_squish()
 }
 
+#' @export
 replace_ordinals <- function(string) {
+
   number <- as.numeric(str_extract(string, "\\d+"))
   x <- ordinals[ordinals$number == number, "long"]
   as.character(x)
 }
 
+#' @export
 replace_number <- function(string) {
-  if (str_detect(string, "\\d")) {
-    number <- as.numeric(str_extract(string, "\\d+"))
-    x <- ordinals[ordinals$number == number, "long_number"]
-    x <- as.character(x)
-  } else {
-    x <- string
-  }
-  x
+
+  number <- as.numeric(str_extract(string, "\\d+"))
+  x <- abbr_numbers[abbr_numbers$number_short == number, "number_long"]
+  x <- as.character(x)
+
 }
 
+#' @export
 replace_fraction <- function(string) {
+
+  if (!str_detect(string, "\\d+ (\\d+|\\w+)[\\s/](\\d+|HALF|FOUR|EIGH|SIXTEEN)(?=(THS?)?$)")) return(string)
   num_1 <- str_extract(string, "^\\d+")
   num_1 <- replace_number(num_1)
   num_2 <- str_extract(string, " (\\d+|\\w+)[\\s/]")
-  num_2 <- replace_number(num_2)
+  if (str_detect(num_2, "\\d")) num_2 <- replace_number(num_2)
   num_3 <- str_extract(string, "(\\d+|HALF|FOUR|EIGH|SIXTEEN)(?=(THS?)?$)")
 
   if (str_detect(num_3, "\\d")) {
@@ -176,3 +179,4 @@ replace_fraction <- function(string) {
 
   paste(num_1, "AND", num_2, num_3)
 }
+
