@@ -14,3 +14,15 @@
 #'
 #' Dataset to show how addresses are formatted with addressr.
 "test_addresses"
+#' Number abbr
+#'
+#' Ordinals and numbers
+"abbr_numbers"
+#' Address abbreviations new
+#'
+#' tidier address abbreviations
+"abbr_address"
+#' Address data dictionary
+#'
+#' define address components
+"dd_address"

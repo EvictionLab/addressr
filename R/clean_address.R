@@ -146,13 +146,12 @@ clean_address <- function(.data, address_column, method = "default", output = "e
     tic("extract address parts")
     df_box <- df |>
       extract_remove_squish({{ input_column }}, "po_box", "po_box") |>
-      mutate({{ po_box }} := str_replace_all({{ po_box }}, "(P?.*O?.*BOX)\\W(\\w+)", "PO BOX \\2"),
+      mutate({{ po_box }} := str_replace_all({{ po_box }}, "(P?.*O?.*BOX)\\W?(\\w+)", "PO BOX \\2"),
              {{ extra_back }} := {{ input_column }},
              {{ input_column }} := NA_character_) |>
       filter(!is.na(po_box))
 
     df <- df |> anti_join(df_box, by = "addressr_id")
-
 
     # step 3: separate out address components from each address & standardize spellings
     common_suffix_regex <- str_collapse_bound(unique(c(most_common_suffixes$long, most_common_suffixes$short, "AV", "BV", "CI")))
@@ -247,7 +246,8 @@ clean_address <- function(.data, address_column, method = "default", output = "e
       unite({{ street_name }}, any_of(c("street_name", "street_suffix_2")), sep = " ", na.rm = TRUE) |>
       mutate({{ street_name }} := str_squish({{ street_name }}) |> na_if("")) |>
       arrange({{ original_row_id }}, {{ addressr_id }}) |>
-      unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE)
+      unite("clean_address", any_of(v_clean_address), sep = " ", remove = FALSE, na.rm = TRUE) |>
+      mutate({{ clean_address }} := str_squish({{ clean_address }}) |> na_if(""))
     toc()
 
     toc()
